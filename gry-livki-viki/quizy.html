@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eaf6ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gry Livki i Viki">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Bajkowe Quizy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: ekran wyboru z dwiema dużymi kartami quizów, potem jedno pytanie na ekran z paskiem postępu, na końcu wynik z gwiazdkami. */
+:root{
+  --bg:#f6f1fb;       /* lawendowy papier */
+  --paper:#ffffff;
+  --ink:#2a1f45;
+  --muted:#6d6390;
+  --line:#e2d8f1;
+  --rose:#d9467a;     /* quiz o księżniczkach */
+  --rose-soft:#fbe3ec;
+  --sea:#11869b;      /* quiz o Luce */
+  --sea-soft:#d8f1f4;
+  --ice:#2f6fc7;--ice-soft:#dde9fa;--toy:#c4620f;--toy-soft:#fbe7d4;--zoo:#6b4fc8;--zoo-soft:#e8e1fa;--blue:#3559c7;--blue-soft:#e0e6fa;--hx:#a82bb5;--hx-soft:#f6e0f8;
+  --good:#2f9e5b;--good-bg:#e0f5e8;
+  --bad:#d4483b;--bad-bg:#fde4e1;
+  --gold:#f5b800;
+  --shadow:0 4px 0 #ddd0ee;
+  --display:"Baloo 2","Comic Sans MS",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1a1530;--paper:#261f43;--ink:#f3eefc;--muted:#b3a8d6;--line:#3a3062;
+  --rose:#ff6f9f;--rose-soft:#43213a;--sea:#3cc6db;--sea-soft:#163a45;--ice:#6aa8ff;--ice-soft:#1d2d4d;--toy:#ff9b45;--toy-soft:#3d2a1a;--zoo:#a58cff;--zoo-soft:#2e2552;--blue:#7d9bff;--blue-soft:#1f2850;--hx:#e07bff;--hx-soft:#3a1d45;
+  --good:#5ad38e;--good-bg:#173829;--bad:#ff7d70;--bad-bg:#40201f;--gold:#ffcd38;--shadow:0 4px 0 #100c20;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a1530;--paper:#261f43;--ink:#f3eefc;--muted:#b3a8d6;--line:#3a3062;
+  --rose:#ff6f9f;--rose-soft:#43213a;--sea:#3cc6db;--sea-soft:#163a45;--ice:#6aa8ff;--ice-soft:#1d2d4d;--toy:#ff9b45;--toy-soft:#3d2a1a;--zoo:#a58cff;--zoo-soft:#2e2552;--blue:#7d9bff;--blue-soft:#1f2850;--hx:#e07bff;--hx-soft:#3a1d45;
+  --good:#5ad38e;--good-bg:#173829;--bad:#ff7d70;--bad-bg:#40201f;--gold:#ffcd38;--shadow:0 4px 0 #100c20;color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:22px 40px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.c-rose{--acc:var(--rose);--acc-soft:var(--rose-soft)}
+.c-sea{--acc:var(--sea);--acc-soft:var(--sea-soft)}
+.c-ice{--acc:var(--ice);--acc-soft:var(--ice-soft)}
+.c-toy{--acc:var(--toy);--acc-soft:var(--toy-soft)}
+.c-zoo{--acc:var(--zoo);--acc-soft:var(--zoo-soft)}
+.c-blue{--acc:var(--blue);--acc-soft:var(--blue-soft)}
+.c-hx{--acc:var(--hx);--acc-soft:var(--hx-soft)}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,7vw,44px);line-height:1;margin:0;text-wrap:balance}
+h1 em{font-style:normal;color:var(--rose)}
+.sub{margin:6px 0 0;color:var(--muted)}
+.voice{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px}
+.voice[aria-pressed="false"]{color:var(--muted)}
+.voice span{font-size:20px}
+
+.pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.qcard{text-align:left;border:3px solid var(--line);background:var(--paper);border-radius:26px;padding:22px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:8px;transition:transform .15s;position:relative;overflow:hidden}
+.qcard:hover{transform:translateY(-4px)}
+.qcard::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:var(--acc)}
+.qcard .ico{font-size:58px;line-height:1}
+.qcard h2{font-family:var(--display);font-weight:800;font-size:28px;margin:4px 0 0;line-height:1.1}
+.qcard p{margin:0;color:var(--muted)}
+.qcard .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{background:var(--acc-soft);color:var(--acc);font-weight:700;font-size:14px;border-radius:999px;padding:4px 12px}
+
+.panel{background:var(--paper);border:3px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;gap:12px}
+.back{border:2px solid var(--line);background:none;border-radius:12px;padding:6px 12px;font-weight:700;font-size:15px}
+.bar{flex:1;height:14px;background:var(--line);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);border-radius:999px;transition:width .4s}
+.num{font-family:var(--display);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.qrow{display:flex;gap:12px;align-items:flex-start}
+.question{font-family:var(--display);font-weight:700;font-size:clamp(22px,5vw,30px);line-height:1.2;margin:0;text-wrap:balance;flex:1;min-width:0}
+.listen{flex:none;border:0;background:var(--acc);color:#fff;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;box-shadow:var(--shadow)}
+.listen svg{width:26px;height:26px}
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.answers{grid-template-columns:1fr}}
+.ans{display:flex;align-items:center;gap:12px;text-align:left;border:3px solid var(--line);background:var(--bg);border-radius:18px;padding:14px 16px;font-weight:700;font-size:18px;min-height:64px}
+.ans b{flex:none;width:34px;height:34px;border-radius:50%;background:var(--acc-soft);color:var(--acc);display:grid;place-items:center;font-family:var(--display);font-size:18px}
+.ans:hover:not(:disabled){border-color:var(--acc)}
+.ans:disabled{cursor:default}
+.ans.right{border-color:var(--good);background:var(--good-bg)}
+.ans.right b{background:var(--good);color:#fff}
+.ans.wrong{border-color:var(--bad);background:var(--bad-bg);animation:shake .35s}
+.ans.wrong b{background:var(--bad);color:#fff}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{min-height:1.5em;font-family:var(--display);font-weight:700;font-size:21px;text-align:center}
+.fb.ok{color:var(--good)}.fb.no{color:var(--bad)}
+.score{display:flex;justify-content:center;gap:6px;font-family:var(--display);font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.result{text-align:center;align-items:center}
+.result .big{font-family:var(--display);font-weight:800;font-size:clamp(56px,16vw,88px);line-height:1;color:var(--acc);font-variant-numeric:tabular-nums}
+.result h2{font-family:var(--display);font-weight:800;font-size:30px;margin:0}
+.stars{font-size:48px;letter-spacing:6px}
+.stars .off{filter:grayscale(1);opacity:.3}
+.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn{border:0;border-radius:16px;padding:14px 22px;font-family:var(--display);font-weight:700;font-size:19px;background:var(--acc);color:#fff;box-shadow:var(--shadow)}
+.btn.alt{background:var(--paper);color:var(--ink);border:3px solid var(--line)}
+.best{color:var(--muted);font-size:15px;margin:0}
+.note{color:var(--muted);font-size:14px;margin:0;max-width:65ch}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Bajkowe <em>Quizy</em></h1>
+      <p class="sub">Wybierz quiz i sprawdź, ile pamiętasz z bajek.</p>
+    </div>
+    <button class="voice" id="voice" aria-pressed="true"><span aria-hidden="true">🔊</span><span id="voiceLbl">Lektor czyta</span></button>
+  </header>
+
+  <section id="home" class="pick"></section>
+
+  <section id="play" class="panel" hidden>
+    <div class="top">
+      <button class="back" id="quit">← Quizy</button>
+      <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
+      <div class="num" id="qnum">1 / 30</div>
+    </div>
+    <div class="qrow">
+      <h2 class="question" id="qtext"></h2>
+      <button class="listen" id="listen" aria-label="Przeczytaj pytanie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+    </div>
+    <div class="answers" id="answers"></div>
+    <div class="fb" id="fb" aria-live="polite"></div>
+    <div class="score">Dobre odpowiedzi: <span id="good">0</span></div>
+  </section>
+
+  <section id="result" class="panel result" hidden>
+    <div class="stars" id="rstars"></div>
+    <h2 id="rtitle"></h2>
+    <div class="big" id="rscore"></div>
+    <p class="best" id="rbest"></p>
+    <div class="btns"><button class="btn" id="again">Zagraj jeszcze raz</button><button class="btn alt" id="home2">Wybierz inny quiz</button></div>
+  </section>
+
+  <p class="note">Pytania i odpowiedzi czyta polski głos wbudowany w przeglądarkę. Kolejność odpowiedzi zmienia się przy każdej grze.</p>
+</div>
+
+<script>
+(()=>{
+/* pierwsza odpowiedź jest zawsze poprawna; kolejność losujemy */
+const QUIZZES={
+ princess:{title:'Księżniczki',icon:'👑',color:'c-rose',desc:'Szklane pantofelki, zaczarowane róże i podwodne królestwa.',qs:[
+  ['Która księżniczka ma bardzo długie, magiczne włosy?',['Roszpunka','Bella','Mulan','Merida']],
+  ['Kto zgubił szklany pantofelek na balu?',['Kopciuszek','Królewna Śnieżka','Aurora','Ariel']],
+  ['W co zamieniła się kareta Kopciuszka o północy?',['W dynię','W jabłko','W arbuza','W ogórka']],
+  ['Kto pomógł Kopciuszkowi pojechać na bal?',['Wróżka chrzestna','Dżin z lampy','Smok Mushu','Król Tryton']],
+  ['Co zjadła Królewna Śnieżka, zanim zasnęła?',['Zatrute jabłko','Gruszkę','Ciastko','Truskawkę']],
+  ['Ilu krasnoludków mieszkało ze Śnieżką?',['Siedmiu','Pięciu','Trzech','Dziesięciu']],
+  ['Kim jest Ariel?',['Syrenką','Wróżką','Czarownicą','Smokiem']],
+  ['Jak ma na imię krab, przyjaciel Ariel?',['Sebastian','Florek','Pascal','Mushu']],
+  ['Jak ma na imię rybka, najlepszy przyjaciel Ariel?',['Florek','Hei Hei','Radża','Sebastian']],
+  ['Co Ariel oddała morskiej wiedźmie Urszuli?',['Swój głos','Koronę','Muszelkę','Grzebień']],
+  ['Kto jest tatą Ariel?',['Król Tryton','Maui','Dżin','Bestia']],
+  ['Co najbardziej lubi robić Bella?',['Czytać książki','Pływać','Strzelać z łuku','Gotować']],
+  ['Jaki zaczarowany kwiat był w zamku Bestii?',['Róża','Tulipan','Słonecznik','Stokrotka']],
+  ['Czym jest Pani Imbryk z zamku Bestii?',['Czajniczkiem do herbaty','Zegarem','Świecznikiem','Szafą']],
+  ['Jakie zwierzę jest przyjacielem Dżasminy?',['Tygrys','Kot','Pies','Koń']],
+  ['Na czym latają Aladyn i Dżasmina?',['Na latającym dywanie','Na smoku','Na miotle','W balonie']],
+  ['Za kogo przebrała się Mulan, żeby walczyć zamiast taty?',['Za żołnierza','Za księżniczkę','Za smoka','Za kucharza']],
+  ['Jak ma na imię mały smok, który pomaga Mulan?',['Mushu','Pascal','Maui','Florek']],
+  ['Jakie zwierzątko jest przyjacielem Pocahontas?',['Szop','Lis','Sowa','Żółw']],
+  ['W co zamieniła się Tiana po pocałunku z księciem-żabą?',['W żabę','W kota','W ptaka','W rybę']],
+  ['O czym marzyła Tiana?',['O własnej restauracji','O koronie','O podróży na Księżyc','O koniu']],
+  ['W jakim mieście mieszka Tiana?',['W Nowym Orleanie','W Paryżu','W Londynie','W Rzymie']],
+  ['Czym najlepiej posługuje się Merida?',['Łukiem','Patelnią','Różdżką','Wędką']],
+  ['W jakie zwierzę zamieniła się mama Meridy?',['W niedźwiedzicę','W wilczycę','W sowę','W klacz']],
+  ['Jak ma na imię półbóg, którego spotyka Vaiana?',['Maui','Dżin','Sebastian','Filip']],
+  ['Jak ma na imię zabawny kogut Vaiany?',['Hei Hei','Mushu','Pascal','Florek']],
+  ['O co ukłuła się w palec Śpiąca Królewna, Aurora?',['O wrzeciono','O kaktus','O widelec','O jeża']],
+  ['Ile dobrych wróżek opiekowało się Aurorą?',['Trzy','Jedna','Pięć','Siedem']],
+  ['Jakie zwierzątko jest przyjacielem Roszpunki?',['Kameleon','Kot','Krab','Tygrys']],
+  ['Czego Roszpunka używała jako broni?',['Patelni','Łuku','Miecza','Parasola']]
+ ]},
+ luca:{title:'Luca i Alberto',icon:'🛵',color:'c-sea',desc:'Morskie potwory, włoskie miasteczko i wielkie marzenie o skuterze.',qs:[
+  ['Kim naprawdę są Luca i Alberto?',['Morskimi potworami','Syrenami','Rybakami','Piratami']],
+  ['Co się dzieje, gdy Luca i Alberto wyjdą z wody i wyschną?',['Wyglądają jak zwykli chłopcy','Zamieniają się w ryby','Stają się niewidzialni','Zasypiają']],
+  ['Co zdradza ich prawdziwy wygląd?',['Woda','Słońce','Wiatr','Śmiech']],
+  ['Jak nazywa się miasteczko, do którego idą chłopcy?',['Portorosso','Rzym','Wenecja','Mediolan']],
+  ['W jakim kraju dzieje się ta bajka?',['We Włoszech','W Hiszpanii','We Francji','W Grecji']],
+  ['O czym marzą Luca i Alberto?',['O skuterze Vespa','O łodzi','O samolocie','O koniu']],
+  ['Co mówi Alberto, żeby przegonić strach?',['„Silenzio, Bruno!”','„Abrakadabra!”','„Hop, hop!”','„Raz, dwa, trzy!”']],
+  ['Jak ma na imię dziewczynka, która zaprzyjaźnia się z chłopcami?',['Giulia','Vaiana','Bella','Anna']],
+  ['Czym zajmuje się Massimo, tata Giulii?',['Jest rybakiem','Jest piekarzem','Jest policjantem','Jest lekarzem']],
+  ['Jak ma na imię kot Massima?',['Machiavelli','Mruczek','Puszek','Tygrysek']],
+  ['Kto jest złośliwym chłopakiem, który dokucza dzieciom?',['Ercole','Massimo','Lorenzo','Ugo']],
+  ['Jak nazywają się zawody w miasteczku?',['Puchar Portorosso','Wielki Wyścig Morza','Olimpiada Rybaków','Turniej Skuterów']],
+  ['Jakie konkurencje są w tych zawodach?',['Pływanie, jedzenie makaronu i jazda na rowerze','Bieg, skok i rzut','Jazda konna i łucznictwo','Śpiewanie i taniec']],
+  ['Jaki makaron trzeba zjeść podczas zawodów?',['Trenette al pesto','Spaghetti bolognese','Lasagne','Ravioli']],
+  ['Czym zajmował się Luca pod wodą, zanim poznał Alberta?',['Pasł ryby','Budował statki','Szukał skarbów','Chodził do szkoły']],
+  ['Gdzie mieszkał Alberto?',['W starej wieży na wyspie','W zamku','Na statku','W latarni morskiej']],
+  ['Do kogo rodzice chcieli wysłać Lucę, głęboko pod wodę?',['Do wujka Ugo','Do babci','Do Massima','Do Ercole']],
+  ['Co zaczyna fascynować Lucę dzięki Giulii?',['Gwiazdy i kosmos','Gotowanie','Piłka nożna','Muzyka']],
+  ['Co Alberto sprzedaje na końcu bajki, żeby Luca mógł pojechać do szkoły?',['Vespę','Rower','Wędkę','Swoją wieżę']],
+  ['Do jakiego miasta Luca jedzie z Giulią do szkoły?',['Do Genui','Do Rzymu','Do Neapolu','Do Wenecji']]
+ ]},
+ frozen:{title:'Kraina Lodu',icon:'❄️',color:'c-ice',desc:'Lodowa magia Elsy, odważna Anna i bałwanek, który kocha lato.',qs:[
+  ['Jaką magiczną moc ma Elsa?',['Tworzy lód i śnieg','Potrafi latać','Jest niewidzialna','Rozmawia ze zwierzętami']],
+  ['Kim jest Anna dla Elsy?',['Młodszą siostrą','Starszą siostrą','Kuzynką','Sąsiadką']],
+  ['Jak nazywa się królestwo Elsy i Anny?',['Arendelle','Portorosso','Zwierzogród','Agrabah']],
+  ['Kim jest Olaf?',['Bałwankiem','Reniferem','Trollem','Księciem']],
+  ['Z czego Olaf ma nos?',['Z marchewki','Z kamyka','Z patyka','Z guzika']],
+  ['Co Olaf bardzo lubi, chociaż jest ze śniegu?',['Ciepłe uściski','Zimną wodę','Lody','Gorącą kąpiel']],
+  ['O jakiej porze roku marzy Olaf?',['O lecie','O zimie','O jesieni','O wiośnie']],
+  ['Jak ma na imię renifer Kristoffa?',['Sven','Olaf','Hans','Bruni']],
+  ['Czym zajmuje się Kristoff?',['Sprzedaje lód','Łowi ryby','Piecze chleb','Rządzi królestwem']],
+  ['Kto wychował Kristoffa?',['Trolle','Wilki','Rybacy','Krasnoludki']],
+  ['Kto okazał się czarnym charakterem w pierwszej części?',['Książę Hans','Kristoff','Olaf','Sven']],
+  ['Co Elsa zbudowała wysoko w górach?',['Lodowy pałac','Drewniany dom','Most','Statek']],
+  ['Co Elsa nosiła na dłoniach, żeby ukryć swoją moc?',['Rękawiczki','Pierścionki','Bransoletki','Opaski']],
+  ['Kim została Elsa w dniu, w którym zaczyna się bajka?',['Królową','Wróżką','Czarownicą','Syrenką']],
+  ['Jak Anna rozmroziła swoje zamrożone serce?',['Chroniąc Elsę z miłości','Pocałunkiem Hansa','Gorącą zupą','Czarem trolli']],
+  ['Co Elsa dała Olafowi, żeby nie roztopił się latem?',['Własną śnieżną chmurkę','Parasol','Lodówkę','Czapkę']],
+  ['Jakiego koloru jest suknia, którą Elsa wyczarowała w lodowym pałacu?',['Błękitna','Czerwona','Żółta','Zielona']],
+  ['Jak ma na imię mała ognista salamandra z drugiej części?',['Bruni','Sven','Pascal','Hei Hei']],
+  ['Jak nazywa się magiczny koń z wody z drugiej części?',['Nokk','Sven','Mustang','Bruni']],
+  ['Kto zostaje królową Arendelle na końcu drugiej części?',['Anna','Elsa','Mama sióstr','Nikt']]
+ ]},
+ toys:{title:'Toy Story',icon:'🤠',color:'c-toy',desc:'Zabawki, które ożywają, gdy nikt nie patrzy.',qs:[
+  ['Kim jest Chudy?',['Kowbojem-szeryfem','Astronautą','Policjantem','Piratem']],
+  ['Kim jest Buzz Astral?',['Kosmicznym strażnikiem','Kowbojem','Dinozaurem','Rycerzem']],
+  ['Co woła Buzz, kiedy chce lecieć?',['„Do nieskończoności i jeszcze dalej!”','„Hop, hop, do góry!”','„Abrakadabra!”','„Silenzio, Bruno!”']],
+  ['Jak ma na imię chłopiec, do którego należą zabawki w pierwszych częściach?',['Andy','Sid','Luca','Hans']],
+  ['Czyje imię jest napisane na bucie Chudego?',['Andy’ego','Sida','Bonnie','Jessie']],
+  ['Co się dzieje, gdy pociągnie się Chudego za sznurek na plecach?',['Mówi','Świeci','Lata','Tańczy']],
+  ['Co Buzz potrafi rozłożyć?',['Skrzydła','Parasol','Spadochron','Ogon']],
+  ['Co robią zabawki, gdy do pokoju wchodzi człowiek?',['Nieruchomieją','Uciekają','Śpiewają','Chowają się pod łóżko']],
+  ['Kim jest Rex?',['Dinozaurem','Świnką','Psem','Koniem']],
+  ['Kim jest Hamm?',['Świnką-skarbonką','Kotkiem','Krową','Żółwiem']],
+  ['Czym jest Pan Bulwa?',['Ziemniakiem','Marchewką','Jabłkiem','Dynią']],
+  ['Jak ma na imię kowbojka, przyjaciółka Chudego?',['Jessie','Bella','Giulia','Anna']],
+  ['Kto jest sąsiadem, który psuł i przerabiał zabawki?',['Sid','Andy','Ercole','Hans']],
+  ['Jak nazywa się restauracja z automatem pełnym kosmitów?',['Pizza Planet','Kosmiczny Burger','Planeta Lodów','Rakieta Pizza']],
+  ['Ile oczu mają małe zielone ufoludki?',['Troje','Dwoje','Jedno','Pięcioro']],
+  ['Kto jest największym wrogiem Buzza?',['Zurg','Hans','Sid','Rex']],
+  ['Gdzie trafiają zabawki w trzeciej części?',['Do przedszkola','Do szkoły','Do sklepu','Do zoo']],
+  ['Jak ma na imię miś z trzeciej części, który pachnie truskawkami?',['Lotso','Rex','Hamm','Zurg']],
+  ['Do kogo trafiają zabawki Andy’ego na końcu trzeciej części?',['Do Bonnie','Do Sida','Do babci','Do Jessie']],
+  ['Z czego Bonnie zrobiła Sztućka w czwartej części?',['Z plastikowego sztućca','Z kartonu','Z kamienia','Z liścia']]
+ ]},
+ zoo:{title:'Zwierzogród',icon:'🦊',color:'c-zoo',desc:'Miasto zwierząt, dzielna króliczka-policjantka i sprytny lis.',qs:[
+  ['Jak nazywa się miasto, w którym mieszkają różne zwierzęta?',['Zwierzogród','Arendelle','Portorosso','Pizza Planet']],
+  ['Jakim zwierzęciem jest Judy Hops?',['Królikiem','Lisem','Kotem','Myszą']],
+  ['Kim chciała zostać Judy?',['Policjantką','Lekarką','Piosenkarką','Kucharką']],
+  ['Skąd pochodzi Judy?',['Z farmy na wsi','Z dżungli','Z pustyni','Z Arktyki']],
+  ['Co uprawiają rodzice Judy?',['Marchewki','Ryż','Ziemniaki','Kukurydzę']],
+  ['Ile rodzeństwa ma Judy?',['Ponad dwieście','Dwoje','Nie ma rodzeństwa','Pięcioro']],
+  ['Jakim zwierzęciem jest Nick Bajer?',['Lisem','Wilkiem','Psem','Królikiem']],
+  ['Co sprzedawał Nick, kiedy poznała go Judy?',['Lody na patyku','Marchewki','Kwiaty','Gazety']],
+  ['Kim udaje Finnick, mały kolega Nicka?',['Małe dziecko','Policjanta','Lekarza','Kucharza']],
+  ['Jakim zwierzęciem jest Szef Bogo, szef policji?',['Bawołem','Lwem','Słoniem','Niedźwiedziem']],
+  ['Jakim zwierzęciem jest wesoły policjant z recepcji, który kocha pączki?',['Gepardem','Hipopotamem','Misiem','Wilkiem']],
+  ['Kim jest Flash, który bardzo powoli pracuje w urzędzie?',['Leniwcem','Żółwiem','Ślimakiem','Koalą']],
+  ['Ile czasu Szef Bogo dał Judy na rozwiązanie sprawy?',['48 godzin','Tydzień','Rok','5 minut']],
+  ['Kogo szukali Judy i Nick?',['Zaginionej wydry','Słonia','Kota','Ukrytego skarbu']],
+  ['Co Judy ma w kształcie marchewki?',['Długopis, który nagrywa','Latarkę','Telefon','Klucz']],
+  ['Jakim zwierzęciem jest burmistrz Zwierzogrodu?',['Lwem','Królikiem','Żyrafą','Zebrą']],
+  ['Kto okazał się czarnym charakterem?',['Owca, zastępczyni burmistrza','Szef Bogo','Nick','Flash']],
+  ['Jakim zwierzęciem jest gwiazda muzyki w Zwierzogrodzie?',['Gazelą','Żyrafą','Zebrą','Owcą']],
+  ['Kim zostaje Nick na końcu bajki?',['Policjantem','Burmistrzem','Kucharzem','Sprzedawcą']],
+  ['Z kim Judy pracuje w parze w policji na końcu?',['Z Nickiem','Z Flashem','Z Szefem Bogo','Z Finnickiem']]
+ ]},
+ bluey:{title:'Bluey',icon:'🐶',color:'c-blue',desc:'Niebieski piesek, siostra Bingo i najzabawniejsze rodzinne zabawy.',qs:[
+  ['Jakim zwierzęciem jest Bluey?',['Pieskiem','Kotkiem','Królikiem','Lisem']],
+  ['Jakiego koloru jest sierść Bluey?',['Niebieska','Zielona','Różowa','Żółta']],
+  ['Jak ma na imię młodsza siostra Bluey?',['Bingo','Muffin','Chloe','Socks']],
+  ['Jakiego koloru jest sierść Bingo?',['Rudopomarańczowa','Niebieska','Biała','Czarna']],
+  ['Jak ma na imię tata Bluey?',['Bandit','Stripe','Lucky','Bob']],
+  ['Jak ma na imię mama Bluey?',['Chilli','Trixie','Calypso','Elsa']],
+  ['Ile lat ma Bluey?',['Sześć','Dwa','Dziesięć','Dwanaście']],
+  ['W jakim kraju mieszka rodzina Bluey?',['W Australii','W Polsce','We Włoszech','W Kanadzie']],
+  ['Czym zajmuje się w pracy tata Bandit?',['Jest archeologiem','Jest pilotem','Jest kucharzem','Jest lekarzem']],
+  ['Gdzie pracuje mama Chilli?',['Na lotnisku','W szkole','W szpitalu','W sklepie']],
+  ['Jak ma na imię wujek Bluey, brat taty?',['Stripe','Lucky','Rusty','Jack']],
+  ['Kim są dla Bluey Muffin i Socks?',['Kuzynkami','Siostrami','Nauczycielkami','Babciami']],
+  ['Kto z rodziny często się złości i głośno krzyczy?',['Muffin','Bingo','Mama Chilli','Pani Calypso']],
+  ['Co robi magiczny ksylofon w zabawie z tatą?',['Zatrzymuje tatę w miejscu','Gra kołysanki','Zamienia w żabę','Wyczarowuje lody']],
+  ['Czego nie wolno upuścić na podłogę w zabawie w odbijanie?',['Balonu','Kapelusza','Kanapki','Poduszki']],
+  ['Co trzeba robić w zabawie „podłoga to lawa”?',['Nie dotykać podłogi','Skakać do wody','Głośno śpiewać','Leżeć na podłodze']],
+  ['W kogo przebierają się Bluey i Bingo w zabawie z laskami?',['W babcie','W piratów','W policjantów','W księżniczki']],
+  ['Jak ma na imię przyjaciółka Bluey, która jest dalmatyńczykiem?',['Chloe','Bingo','Indy','Judo']],
+  ['Jak ma na imię pani nauczycielka w przedszkolu Bluey?',['Calypso','Chilli','Trixie','Anna']],
+  ['Jak ma na imię chłopiec, sąsiad Bluey, który mieszka za płotem?',['Lucky','Rusty','Snickers','Bandit']]
+ ]},
+ huntrix:{title:'HUNTR/X',icon:'🎤',color:'c-hx',desc:'Gwiazdy k-popu, które po koncertach walczą z demonami.',qs:[
+  ['Z jakiej bajki pochodzi zespół HUNTR/X?',['K-popowe łowczynie demonów','Kraina Lodu','Luca','Toy Story']],
+  ['Ile dziewczyn śpiewa w HUNTR/X?',['Trzy','Dwie','Pięć','Siedem']],
+  ['Jak mają na imię dziewczyny z HUNTR/X?',['Rumi, Mira i Zoey','Elsa, Anna i Bella','Judy, Giulia i Jessie','Bluey, Bingo i Chloe']],
+  ['Kim są HUNTR/X, kiedy nie śpiewają na scenie?',['Łowczyniami demonów','Syrenami','Policjantkami','Wróżkami']],
+  ['W jakim mieście mieszkają HUNTR/X?',['W Seulu','W Paryżu','W Rzymie','W Warszawie']],
+  ['Jaką muzykę śpiewają HUNTR/X?',['K-pop','Operę','Jazz','Muzykę country']],
+  ['Co HUNTR/X tworzą swoimi piosenkami?',['Magiczną barierę przed demonami','Tęczę','Lodowy pałac','Latający dywan']],
+  ['Jak nazywa się magiczna bariera, która chroni ludzi?',['Honmoon','Arendelle','Portorosso','Pizza Planet']],
+  ['Która z dziewczyn jest liderką zespołu?',['Rumi','Mira','Zoey','Celine']],
+  ['Jaki sekret ukrywa Rumi?',['Jest w połowie demonem','Nie umie śpiewać','Boi się psów','Jest księżniczką']],
+  ['Jakiego koloru jest długi warkocz Rumi?',['Fioletowy','Rudy','Zielony','Złoty']],
+  ['Która z dziewczyn jest najmłodsza, pisze teksty i rapuje?',['Zoey','Rumi','Mira','Celine']],
+  ['Która z dziewczyn jest najwyższa i świetnie tańczy?',['Mira','Zoey','Rumi','Celine']],
+  ['Czym walczy Zoey?',['Małymi nożami do rzucania','Łukiem','Patelnią','Różdżką']],
+  ['Kim jest Celine?',['Opiekunką i nauczycielką Rumi','Mamą Miry','Menedżerką chłopaków','Królową demonów']],
+  ['Jak nazywa się chłopięcy zespół, w którym śpiewają demony?',['Saja Boys','Złote Chłopaki','Tiger Band','Gwiazdy Seulu']],
+  ['Jak ma na imię lider tego chłopięcego zespołu?',['Jinu','Hans','Nick','Bandit']],
+  ['Jak ma na imię król demonów?',['Gwi-Ma','Zurg','Hans','Ercole']],
+  ['Jakie zwierzę towarzyszy Jinu?',['Niebieski tygrys','Kot','Renifer','Smok']],
+  ['Jak nazywa się największy przebój HUNTR/X?',['Golden','Silver Star','Rainbow','Moonlight']]
+ ]}
+};
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const LETTERS='ABCD';
+
+/* --- lektor --- */
+const synth=window.speechSynthesis;let vPL=null,token=0,voiceOn=true;
+try{voiceOn=localStorage.getItem('bq-voice')!=='0'}catch(e){}
+function pickV(){if(!synth)return;const v=synth.getVoices();vPL=v.find(x=>/^pl/i.test(x.lang)&&/Zosia|Paulina|Ewa|female/i.test(x.name))||v.find(x=>/^pl/i.test(x.lang))||null}
+if(synth){pickV();synth.onvoiceschanged=pickV}
+function say(text,done,force){
+  const t=++token;let fired=false;const fin=()=>{if(!fired&&t===token){fired=true;done&&done()}};
+  if(!synth||(!voiceOn&&!force)){if(done)setTimeout(fin,1600);return}
+  try{synth.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=vPL?vPL.lang:'pl-PL';if(vPL)u.voice=vPL;u.rate=.95;u.pitch=1.1;
+    u.onend=()=>setTimeout(fin,400);u.onerror=fin;synth.speak(u);if(done)setTimeout(fin,1500+text.length*90)}catch(e){if(done)setTimeout(fin,1600)}
+}
+function stopVoice(){token++;if(synth)try{synth.cancel()}catch(e){}}
+function updVoice(){$('voice').setAttribute('aria-pressed',voiceOn);$('voiceLbl').textContent=voiceOn?'Lektor czyta':'Lektor wyłączony';$('voice').firstElementChild.textContent=voiceOn?'🔊':'🔇'}
+$('voice').onclick=()=>{voiceOn=!voiceOn;try{localStorage.setItem('bq-voice',voiceOn?'1':'0')}catch(e){}updVoice();if(!voiceOn)stopVoice()};
+updVoice();
+if(!synth){$('voice').hidden=true}
+
+/* --- ekran wyboru --- */
+function best(k){try{return+localStorage.getItem('bq-best-'+k)||0}catch(e){return 0}}
+function renderHome(){
+  const h=$('home');h.innerHTML='';
+  for(const[k,q]of Object.entries(QUIZZES)){
+    const b=document.createElement('button');b.className='qcard '+q.color;
+    const bs=best(k);
+    b.innerHTML=`<span class="ico" aria-hidden="true">${q.icon}</span><h2>${q.title}</h2><p>${q.desc}</p>
+      <div class="meta"><span class="chip">${q.qs.length} pytań</span>${bs?`<span class="chip">Rekord: ${bs} / ${q.qs.length}</span>`:''}</div>`;
+    b.onclick=()=>start(k);h.appendChild(b);
+  }
+}
+
+/* --- gra --- */
+let cur=null,order=[],i=0,good=0,busy=false,opts=[];
+function show(id){['home','play','result'].forEach(x=>$(x).hidden=x!==id)}
+function start(k){
+  cur=k;const q=QUIZZES[k];order=shuffle(q.qs);i=0;good=0;
+  ['play','result'].forEach(id=>$(id).className=$(id).className.replace(/ ?c-\w+/g,'')+' '+q.color);
+  $('good').textContent=0;show('play');ask();
+}
+function readQ(){const [t]=order[i];say(t+' '+opts.map((o,n)=>LETTERS[n]+': '+o+'.').join(' '),null,true)}
+function ask(){
+  busy=false;const q=QUIZZES[cur],[t,a]=order[i];
+  $('qnum').textContent=`${i+1} / ${order.length}`;$('barFill').style.width=(i/order.length*100)+'%';
+  $('qtext').textContent=t;$('fb').textContent='';$('fb').className='fb';
+  opts=shuffle(a);const box=$('answers');box.innerHTML='';
+  opts.forEach((o,n)=>{const b=document.createElement('button');b.className='ans';b.innerHTML=`<b>${LETTERS[n]}</b><span></span>`;b.lastChild.textContent=o;
+    b.onclick=()=>choose(b,o===a[0],a[0]);box.appendChild(b)});
+  if(voiceOn)readQ();
+}
+const PRAISE=['Brawo!','Super!','Świetnie!','Doskonale!','Ekstra!'];
+function choose(b,ok,correct){
+  if(busy)return;busy=true;
+  document.querySelectorAll('.ans').forEach(x=>{x.disabled=true;if(x.lastChild.textContent===correct)x.classList.add('right')});
+  let msg;
+  if(ok){good++;$('good').textContent=good;msg=PRAISE[Math.random()*PRAISE.length|0];$('fb').textContent=msg;$('fb').className='fb ok'}
+  else{b.classList.add('wrong');msg='Niestety. Dobra odpowiedź to: '+correct;$('fb').textContent=msg;$('fb').className='fb no'}
+  const g=cur;say(msg,()=>{if(cur===g&&!$('play').hidden)next()});
+}
+function next(){i++;if(i>=order.length)finish();else ask()}
+function finish(){
+  const n=order.length,pct=good/n,starsN=pct>=.9?3:pct>=.6?2:pct>=.3?1:0;
+  const prev=best(cur);if(good>prev)try{localStorage.setItem('bq-best-'+cur,good)}catch(e){}
+  $('barFill').style.width='100%';
+  $('rstars').innerHTML=[0,1,2].map(k=>`<span class="${k<starsN?'':'off'}">⭐</span>`).join('');
+  const title=starsN===3?'Mistrz bajek!':starsN===2?'Świetny wynik!':starsN===1?'Nieźle!':'Spróbuj jeszcze raz!';
+  $('rtitle').textContent=title;$('rscore').textContent=`${good} / ${n}`;
+  $('rbest').textContent=good>prev&&prev>0?'Nowy rekord!':`Rekord: ${Math.max(prev,good)} / ${n}`;
+  show('result');say(`${title} Masz ${good} dobrych odpowiedzi na ${n}.`);
+}
+$('listen').onclick=readQ;
+$('quit').onclick=()=>{stopVoice();cur=null;renderHome();show('home')};
+$('home2').onclick=()=>{stopVoice();cur=null;renderHome();show('home')};
+$('again').onclick=()=>start(cur);
+
+renderHome();
+})();
+</script>
+
+<a href="index.html" class="home-btn" aria-label="Wróć do wszystkich gier">🏠</a>
+<style>.home-btn{position:fixed;z-index:99;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}</style>
+</body>
+</html>

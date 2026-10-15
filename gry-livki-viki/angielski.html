@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eaf6ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gry Livki i Viki">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Hello English</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grandstander:wght@500;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: nagłówek z gwiazdkami, rząd tematów, przełącznik Ucz się / Quiz, potem siatka dużych kart albo jedno pytanie quizu. */
+:root{
+  --bg:#e9f4fb;        /* jasne niebo */
+  --paper:#ffffff;--sky:#cdeafc;
+  --ink:#1d2b4f;       /* granat jak flamaster */
+  --muted:#5b6788;
+  --line:#cfe0ee;
+  --sun:#ffc531;       /* żółty — akcent i gwiazdki */
+  --sun-ink:#5a3d00;
+  --good:#2f9e5b; --good-bg:#dff5e7;
+  --bad:#d4483b;  --bad-bg:#fde3e0;
+  --shadow:0 4px 0 #c3d6e6;
+  --display:"Grandstander","Comic Sans MS","Chalkboard SE",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141c33;--paper:#1e2947;--sky:#24335e;--ink:#eef3ff;--muted:#a8b3d4;--line:#2e3b62;
+  --sun:#ffcf4d;--sun-ink:#3b2900;--good:#58d08a;--good-bg:#18382a;--bad:#ff7a6d;--bad-bg:#3f1f22;
+  --shadow:0 4px 0 #0c1225;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141c33;--paper:#1e2947;--sky:#24335e;--ink:#eef3ff;--muted:#a8b3d4;--line:#2e3b62;
+  --sun:#ffcf4d;--sun-ink:#3b2900;--good:#58d08a;--good-bg:#18382a;--bad:#ff7a6d;--bad-bg:#3f1f22;
+  --shadow:0 4px 0 #0c1225;color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px}
+.bubble{background:var(--sun);color:var(--sun-ink);font-family:var(--display);font-weight:800;font-size:22px;
+  padding:8px 16px;border-radius:22px 22px 22px 4px;transform:rotate(-4deg);box-shadow:var(--shadow)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,42px);margin:0;line-height:1;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted)}
+.stars{display:flex;align-items:center;gap:8px;background:var(--paper);border:2px solid var(--line);border-radius:999px;
+  padding:8px 16px;font-family:var(--display);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.stars svg{width:26px;height:26px}
+.stars.pop{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.2)}}
+
+.topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:12px}
+.topic{border:3px solid var(--line);background:var(--paper);border-radius:22px;padding:14px 8px 12px;font-weight:700;font-size:15px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--shadow);transition:transform .15s}
+.topic:hover{transform:translateY(-3px)}
+.topic span{font-size:clamp(48px,12vw,64px);line-height:1}
+.topic[aria-pressed="true"]{background:var(--sun);color:var(--sun-ink);border-color:var(--ink);transform:scale(1.04)}
+.modes span{font-size:24px;line-height:1;vertical-align:-3px;margin-right:6px}
+
+.modes{display:inline-flex;background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:4px;gap:4px;align-self:flex-start}
+.modes button{border:0;background:none;border-radius:12px;padding:10px 20px;font-family:var(--display);font-weight:700;font-size:18px}
+.modes button[aria-selected="true"]{background:var(--sun);color:var(--sun-ink)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:20px;box-shadow:var(--shadow);
+  padding:16px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;transition:transform .15s}
+.card:hover{transform:translateY(-3px) rotate(-1deg)}
+.card:active{transform:translateY(2px)}
+.card.speaking{border-color:var(--sun)}
+.pic{font-size:56px;line-height:1.1;height:66px;display:flex;align-items:center;justify-content:center}
+.swatch{width:60px;height:60px;border-radius:50%;border:3px solid var(--line)}
+.digit{font-family:var(--display);font-weight:800;font-size:52px}
+.en{font-family:var(--display);font-weight:800;font-size:24px}
+.pl{color:var(--muted);font-size:14px}
+.say{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.say svg{width:14px;height:14px}
+
+.quiz{background:var(--paper);border:2px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:18px;align-items:center}
+.q-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;text-align:center}
+.q-label{color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:13px}
+.q-word{font-family:var(--display);font-weight:800;font-size:clamp(36px,9vw,56px);line-height:1}
+.listen{border:0;background:var(--sun);color:var(--sun-ink);width:52px;height:52px;border-radius:50%;display:grid;place-items:center;box-shadow:var(--shadow)}
+.listen svg{width:26px;height:26px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;max-width:460px}
+.opt{background:var(--bg);border:3px solid var(--line);border-radius:20px;padding:14px;display:flex;align-items:center;justify-content:center;min-height:110px}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.feedback{min-height:1.6em;font-family:var(--display);font-weight:700;font-size:22px;text-align:center}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--bad)}
+.next{border:0;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 24px;font-family:var(--display);font-weight:700;font-size:18px}
+.progress{display:flex;gap:6px}
+.progress i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.progress i.done{background:var(--sun)}
+.note{color:var(--muted);font-size:14px;margin:0;max-width:65ch}
+.modes{flex-wrap:wrap}
+.mbar{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;width:100%;max-width:560px}
+.mstyle button{padding:8px 14px;font-size:20px;display:flex;align-items:center;gap:4px}
+.mstyle button b{font-family:var(--display);font-size:18px}
+.mstyle button[aria-pressed="true"]{background:var(--sun);color:var(--sun-ink)}
+.mcount{font-size:18px}
+.mgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;max-width:560px}
+@media (max-width:440px){.mgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+.mcard{aspect-ratio:3/4;max-width:100%;border:0;background:none;padding:0;perspective:700px}
+.mcard .in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.mcard.open .in{transform:rotateY(180deg)}
+.mcard .f,.mcard .b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;border:3px solid var(--line);box-sizing:border-box}
+.mcard .f{background:var(--sun);color:var(--sun-ink);font-family:var(--display);font-weight:800;font-size:clamp(32px,8vw,46px);box-shadow:var(--shadow)}
+.mcard:hover .f{filter:brightness(1.05)}
+.mcard .b{background:var(--paper);transform:rotateY(180deg);padding:6px;text-align:center}
+.mcard.done .b{border-color:var(--good);background:var(--good-bg)}
+.mcard .b .pic{font-size:clamp(34px,10vw,54px);height:auto}
+.mcard .b .digit{font-size:clamp(30px,9vw,46px)}
+.mcard .b .swatch{width:70%;height:auto;aspect-ratio:1}
+.mcard .b .en{font-size:clamp(15px,4.2vw,22px);overflow-wrap:anywhere;line-height:1.1}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.games button{border:3px solid var(--line);background:var(--paper);border-radius:18px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:700;font-size:13px;box-shadow:var(--shadow);text-align:center;line-height:1.15}
+.games button span{font-size:36px;line-height:1}
+.games button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.opt.wrong,.nopt.wrong,.food.wrong{border-color:var(--bad);background:var(--bad-bg);animation:shake .35s}
+.gbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;width:100%;text-align:center}
+.target{display:flex;align-items:center;justify-content:center;width:76px;height:76px;border-radius:50%;background:var(--bg);border:3px dashed var(--sun)}
+.target .pic{font-size:44px;height:auto}.target .swatch{width:50px;height:50px}.target .digit{font-size:38px}
+.arena{position:relative;width:100%;height:min(62vh,480px);overflow:hidden;border-radius:18px;background:linear-gradient(var(--sky),var(--bg));touch-action:none}
+.balloon{position:absolute;top:0;left:0;width:84px;height:120px;border:0;padding:0;background:none;touch-action:none}
+.balloon .bin{width:84px;height:98px;border-radius:50% 50% 46% 46%;background:var(--bc);display:flex;align-items:center;justify-content:center;
+  box-shadow:inset -8px -10px 0 rgba(0,0,0,.12),inset 8px 8px 0 rgba(255,255,255,.3)}
+.balloon .bin>*{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:38px;color:#1d2b4f}
+.balloon .bin>.swatch{border:3px solid #fff}
+.balloon::after{content:"";position:absolute;left:41px;top:98px;width:2px;height:22px;background:var(--muted)}
+.balloon.popped .bin{animation:popb .25s forwards}.balloon.popped::after{opacity:0}
+.balloon .bin.wrong{animation:shake .35s}
+@keyframes popb{to{transform:scale(1.7);opacity:0}}
+.mon-wrap{position:relative;display:flex;justify-content:center;padding-top:26px;width:100%;max-width:360px}
+.monster{position:relative;width:180px;height:170px;background:#8b6cf0;border-radius:50% 50% 42% 42%/60% 60% 40% 40%;box-shadow:inset -12px -14px 0 rgba(0,0,0,.15)}
+.monster::before,.monster::after{content:"";position:absolute;top:-16px;width:26px;height:34px;background:#8b6cf0;border-radius:50% 50% 10% 10%}
+.monster::before{left:32px;transform:rotate(-18deg)}.monster::after{right:32px;transform:rotate(18deg)}
+.monster .eyes{position:absolute;top:34px;left:0;right:0;display:flex;justify-content:center;gap:18px}
+.monster .eyes i{width:40px;height:40px;background:#fff;border-radius:50%;position:relative}
+.monster .eyes i::after{content:"";position:absolute;width:16px;height:16px;background:#1d2b4f;border-radius:50%;left:14px;top:16px}
+.monster .mouth{position:absolute;left:50%;top:92px;width:90px;height:52px;margin-left:-45px;background:#3a1f4f;border-radius:10px 10px 50px 50px;overflow:hidden}
+.monster .mouth::before{content:"";position:absolute;left:10px;right:10px;top:0;height:12px;background:repeating-linear-gradient(90deg,#fff 0 13px,transparent 13px 19px)}
+.monster.chomp .mouth{animation:chomp .2s 4 alternate}
+@keyframes chomp{to{height:10px;top:112px}}
+.monster.no{animation:shake .35s 2}
+.bubble2{position:absolute;top:0;right:0;background:var(--paper);border:3px solid var(--line);border-radius:22px 22px 22px 4px;min-width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:32px;font-weight:800}
+.bubble2 .pic{font-size:38px;height:auto}.bubble2 .swatch{width:40px;height:40px}.bubble2 .digit{font-size:32px}
+.tray{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;max-width:460px}
+.food{position:relative;background:var(--bg);border:3px solid var(--line);border-radius:18px;aspect-ratio:1;max-width:100%;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab;padding:0}
+.food.dragging{z-index:5;cursor:grabbing;box-shadow:0 12px 24px rgba(0,0,0,.25)}
+.food.gone{visibility:hidden}
+.food .pic{font-size:clamp(32px,9vw,52px);height:auto}.food .swatch{width:60%;height:auto;aspect-ratio:1}.food .digit{font-size:clamp(30px,8vw,46px)}
+#cpic{width:min(100%,340px);height:auto;aspect-ratio:1}
+#cpic .reg{fill:var(--paper);stroke:var(--ink);stroke-width:3;cursor:pointer;transition:fill .3s,stroke .3s}
+#cpic .reg.st{fill:none;stroke:var(--line);stroke-width:13;stroke-linecap:round}
+#cpic .reg.cur:not(.st){stroke:var(--sun);stroke-width:5;stroke-dasharray:8 6;animation:dash 1s linear infinite}
+#cpic .reg.st.cur{animation:blinkst 1s ease-in-out infinite}
+@keyframes dash{to{stroke-dashoffset:-28}}
+@keyframes blinkst{50%{stroke:var(--sun)}}
+#cpic .eye{fill:var(--ink);pointer-events:none}
+.palette{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:460px}
+.palette button{width:50px;height:50px;border-radius:50%;border:3px solid var(--line);box-shadow:var(--shadow);padding:0}
+.palette button[aria-pressed="true"]{outline:4px solid var(--ink);outline-offset:3px;transform:scale(1.1)}
+.cgrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:460px;min-height:80px}
+.citem{position:relative;width:64px;height:64px;border-radius:16px;background:var(--bg);border:3px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0}
+.citem .pic{font-size:40px;height:auto}.citem .swatch{width:42px;height:42px}
+.citem.counted{border-color:var(--sun)}
+.citem b{position:absolute;top:-9px;right:-9px;background:var(--ink);color:var(--bg);border-radius:50%;width:26px;height:26px;font-size:14px;display:grid;place-items:center}
+.nopts{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.nopt{width:88px;height:88px;border-radius:20px;border:3px solid var(--line);background:var(--paper);font-family:var(--display);font-weight:800;font-size:44px;box-shadow:var(--shadow)}
+.nopt.right{border-color:var(--good);background:var(--good-bg)}
+.cups{position:relative;width:100%;max-width:420px;height:220px}
+.slot{position:absolute;bottom:0;width:33.33%;height:100%;border:0;background:none;padding:0;transition:left .4s ease-in-out}
+.slot .it{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center}
+.slot .it .pic{font-size:52px;height:auto}.slot .it .swatch{width:52px;height:52px}.slot .it .digit{font-size:46px}
+.cup{position:absolute;bottom:0;left:50%;width:96px;margin-left:-48px;height:112px;border-radius:6px;transition:transform .35s;
+  background:linear-gradient(90deg,#c63d34,#f0675c 40%,#d9473d 70%,#b8352d);clip-path:polygon(18% 0,82% 0,100% 100%,0 100%)}
+.slot.up .cup{transform:translateY(-104px)}
+.sbig{border:0;background:var(--bg);border-radius:28px;width:min(100%,260px);aspect-ratio:1;max-width:100%;display:flex;align-items:center;justify-content:center}
+.sbig .pic{font-size:clamp(90px,28vw,150px);height:auto}.sbig .swatch{width:60%;height:60%}.sbig .digit{font-size:120px}
+.sword{font-family:var(--display);font-weight:800;font-size:34px}
+.sturn{font-family:var(--display);font-weight:700;font-size:24px;color:var(--good);animation:pop 1s infinite}
+.scount{color:var(--muted);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <div class="bubble">Hi!</div>
+      <div><h1>Hello English</h1><p class="sub">Kliknij obrazek i posłuchaj, jak się to mówi.</p></div>
+    </div>
+    <div class="stars" id="stars" aria-label="Zdobyte gwiazdki">
+      <svg viewBox="0 0 24 24"><path fill="var(--sun)" stroke="var(--sun-ink)" stroke-width="1.2" stroke-linejoin="round" d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z"/></svg>
+      <span id="starCount">0</span>
+    </div>
+  </header>
+
+  <nav class="topics" id="topics" aria-label="Tematy"></nav>
+
+  <nav class="games" id="games" aria-label="Zabawy"></nav>
+
+  <section id="learn" class="grid" aria-live="polite"></section>
+
+  <section id="quiz" class="quiz" hidden>
+    <div class="progress" id="progress"></div>
+    <div class="q-top">
+      <div><div class="q-label">Znajdź obrazek</div><div class="q-word" id="qWord">cat</div></div>
+      <button class="listen" id="listen" aria-label="Posłuchaj słowa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+    </div>
+    <div class="opts" id="opts"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+  </section>
+
+  <section id="memory" class="quiz" hidden>
+    <div class="mbar">
+      <div class="stars mcount" aria-label="Znalezione pary"><span aria-hidden="true">🃏</span><span id="mpairs">0 / 6</span></div>
+    </div>
+    <div class="mgrid" id="mgrid"></div>
+    <div class="feedback" id="mfeed" aria-live="polite"></div>
+  </section>
+
+  <section id="balloons" class="quiz" hidden>
+    <div class="gbar"><button class="listen" id="bsay" aria-label="Posłuchaj"></button><div class="target" id="btarget"></div><div class="stars mcount"><span aria-hidden="true">🎈</span><span id="bscore">0</span></div></div>
+    <div class="arena" id="barena"></div>
+  </section>
+
+  <section id="monster" class="quiz" hidden>
+    <div class="gbar"><button class="listen" id="msay" aria-label="Posłuchaj"></button><div class="q-label">Nakarm potworka. Przeciągnij albo kliknij!</div></div>
+    <div class="mon-wrap"><div class="monster" id="mon"><div class="eyes"><i></i><i></i></div><div class="mouth" id="mouth"></div></div><div class="bubble2" id="mbubble">?</div></div>
+    <div class="tray" id="tray"></div>
+    <div class="feedback" id="monfeed" aria-live="polite"></div>
+  </section>
+
+  <section id="odd" class="quiz" hidden>
+    <div class="gbar"><button class="listen" id="osay" aria-label="Posłuchaj"></button><div class="q-label">Co tu nie pasuje?</div></div>
+    <div class="opts" id="oopts"></div>
+    <div class="feedback" id="ofeed" aria-live="polite"></div>
+  </section>
+
+  <section id="colour" class="quiz" hidden>
+    <div class="gbar"><button class="listen" id="csay" aria-label="Posłuchaj"></button><div class="q-label" id="cinstr"></div></div>
+    <svg id="cpic" viewBox="0 0 200 200" role="img" aria-label="Obrazek do pokolorowania"></svg>
+    <div class="palette" id="palette"></div>
+  </section>
+
+  <section id="count" class="quiz" hidden>
+    <div class="gbar"><button class="listen" id="nsay" aria-label="Posłuchaj"></button><div class="q-label">Ile jest? Klikaj i licz!</div></div>
+    <div class="cgrid" id="cgrid"></div>
+    <div class="nopts" id="nopts"></div>
+    <div class="feedback" id="nfeed" aria-live="polite"></div>
+  </section>
+
+  <section id="cups" class="quiz" hidden>
+    <div class="gbar"><button class="listen" id="usay" aria-label="Posłuchaj"></button><div class="q-label" id="ulabel">Patrz uważnie!</div></div>
+    <div class="cups" id="cupsbox"></div>
+    <div class="feedback" id="ufeed" aria-live="polite"></div>
+  </section>
+
+  <section id="show" class="quiz" hidden>
+    <div class="scount" id="scount"></div>
+    <button class="sbig" id="sbig" aria-label="Posłuchaj jeszcze raz"></button>
+    <div class="sword" id="sword"></div>
+    <div class="sturn" id="sturn" hidden><span aria-hidden="true">🗣️</span> Powtórz!</div>
+    <button class="next" id="splay"></button>
+  </section>
+
+  <p class="note" id="note">Wymowę czyta głos wbudowany w przeglądarkę, więc może brzmieć trochę inaczej na różnych urządzeniach. Za każdą dobrą odpowiedź w quizie jest gwiazdka.</p>
+</div>
+
+<script>
+(()=>{
+const NUM_EN=['one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const NUM_PL=['jeden','dwa','trzy','cztery','pięć','sześć','siedem','osiem','dziewięć','dziesięć','jedenaście','dwanaście','trzynaście','czternaście','piętnaście','szesnaście','siedemnaście','osiemnaście','dziewiętnaście','dwadzieścia'];
+const NUMS=[];for(let n=1;n<=30;n++){const en=n<=20?NUM_EN[n-1]:n===30?'thirty':'twenty-'+NUM_EN[n-21];const pl=n<=20?NUM_PL[n-1]:n===30?'trzydzieści':'dwadzieścia '+NUM_PL[n-21];NUMS.push([en,pl,String(n)])}
+const TOPICS={
+  animals:{name:'Zwierzęta',en:'animals',icon:'🐶',words:[
+    ['cat','kot','🐱'],['dog','pies','🐶'],['cow','krowa','🐮'],['pig','świnia','🐷'],['horse','koń','🐴'],
+    ['fish','ryba','🐟'],['bird','ptak','🐦'],['rabbit','królik','🐰'],['duck','kaczka','🦆'],['mouse','mysz','🐭'],
+    ['lion','lew','🦁'],['frog','żaba','🐸'],['sheep','owca','🐑'],['goat','koza','🐐'],['hen','kura','🐔'],
+    ['chick','kurczaczek','🐤'],['rooster','kogut','🐓'],['hamster','chomik','🐹'],['turkey','indyk','🦃'],['donkey','osioł','🫏'],
+    ['snail','ślimak','🐌'],['spider','pająk','🕷️'],['ant','mrówka','🐜'],['ladybird','biedronka','🐞'],['worm','robak','🪱'],
+    ['bat','nietoperz','🦇'],['hedgehog','jeż','🦔'],['squirrel','wiewiórka','🐿️'],['goose','gęś','🪿'],['parrot','papuga','🦜']]},
+  wild:{name:'Dzikie zwierzęta',en:'wild animals',icon:'🐘',words:[
+    ['elephant','słoń','🐘'],['giraffe','żyrafa','🦒'],['monkey','małpa','🐒'],['tiger','tygrys','🐯'],['bear','niedźwiedź','🐻'],
+    ['zebra','zebra','🦓'],['snake','wąż','🐍'],['crocodile','krokodyl','🐊'],['fox','lis','🦊'],['owl','sowa','🦉'],
+    ['kangaroo','kangur','🦘'],['panda','panda','🐼'],['hippo','hipopotam','🦛'],['rhino','nosorożec','🦏'],['gorilla','goryl','🦍'],
+    ['camel','wielbłąd','🐫'],['deer','jeleń','🦌'],['wolf','wilk','🐺'],['koala','koala','🐨'],['leopard','lampart','🐆'],
+    ['flamingo','flaming','🦩'],['eagle','orzeł','🦅'],['peacock','paw','🦚'],['sloth','leniwiec','🦥'],['otter','wydra','🦦'],
+    ['raccoon','szop','🦝'],['lizard','jaszczurka','🦎'],['bison','żubr','🦬'],['llama','lama','🦙'],['polar bear','niedźwiedź polarny','🐻‍❄️']]},
+  sea:{name:'Morze i plaża',en:'sea and beach',icon:'🐙',words:[
+    ['octopus','ośmiornica','🐙'],['whale','wieloryb','🐳'],['dolphin','delfin','🐬'],['shark','rekin','🦈'],['crab','krab','🦀'],
+    ['turtle','żółw','🐢'],['jellyfish','meduza','🪼'],['seal','foka','🦭'],['shell','muszelka','🐚'],['penguin','pingwin','🐧'],
+    ['fish','ryba','🐟'],['tropical fish','rybka tropikalna','🐠'],['pufferfish','rozdymka','🐡'],['lobster','homar','🦞'],['shrimp','krewetka','🦐'],
+    ['squid','kałamarnica','🦑'],['coral','koral','🪸'],['wave','fala','🌊'],['boat','łódka','⛵'],['anchor','kotwica','⚓'],
+    ['island','wyspa','🏝️'],['beach','plaża','🏖️'],['diving mask','maska do nurkowania','🤿'],['swimmer','pływak','🏊'],['surfer','surfer','🏄'],
+    ['ship','statek','🚢'],['fishing rod','wędka','🎣'],['beach umbrella','parasol plażowy','⛱️'],['bucket','wiaderko','🪣'],['mermaid','syrenka','🧜‍♀️']]},
+  colors:{name:'Kolory',en:'colours',icon:'🎨',words:[
+    ['red','czerwony','#e53935'],['blue','niebieski','#1e88e5'],['green','zielony','#43a047'],['yellow','żółty','#fdd835'],['orange','pomarańczowy','#fb8c00'],
+    ['pink','różowy','#f06292'],['purple','fioletowy','#8e24aa'],['brown','brązowy','#795548'],['black','czarny','#111111'],['white','biały','#ffffff'],
+    ['grey','szary','#9e9e9e'],['gold','złoty','#d4af37'],['silver','srebrny','#c0c0c0'],['light blue','jasnoniebieski','#81d4fa'],['dark blue','granatowy','#1a237e'],
+    ['light green','jasnozielony','#aed581'],['dark green','ciemnozielony','#1b5e20'],['turquoise','turkusowy','#1abc9c'],['beige','beżowy','#e8d8b8'],['maroon','bordowy','#800000'],
+    ['lime','limonkowy','#c6ff00'],['cream','kremowy','#fff3c4'],['peach','brzoskwiniowy','#ffcba4'],['lilac','liliowy','#c8a2c8'],['mint','miętowy','#98f5c0'],
+    ['olive','oliwkowy','#808000'],['coral','koralowy','#ff7f50'],['light pink','jasnoróżowy','#ffc1e3'],['dark grey','ciemnoszary','#424242'],['light brown','jasnobrązowy','#c19a6b']]},
+  numbers:{name:'Liczby',en:'numbers',icon:'🔢',words:NUMS},
+  food:{name:'Jedzenie',en:'food',icon:'🍎',words:[
+    ['apple','jabłko','🍎'],['banana','banan','🍌'],['bread','chleb','🍞'],['milk','mleko','🥛'],['egg','jajko','🥚'],
+    ['cheese','ser','🧀'],['carrot','marchewka','🥕'],['pizza','pizza','🍕'],['cake','ciasto','🍰'],['water','woda','💧'],
+    ['strawberry','truskawka','🍓'],['ice cream','lody','🍦'],['orange','pomarańcza','🍊'],['pear','gruszka','🍐'],['grapes','winogrona','🍇'],
+    ['watermelon','arbuz','🍉'],['cherry','wiśnia','🍒'],['lemon','cytryna','🍋'],['tomato','pomidor','🍅'],['potato','ziemniak','🥔'],
+    ['corn','kukurydza','🌽'],['cucumber','ogórek','🥒'],['sandwich','kanapka','🥪'],['soup','zupa','🍲'],['chips','frytki','🍟'],
+    ['sweets','cukierki','🍬'],['chocolate','czekolada','🍫'],['biscuit','ciastko','🍪'],['honey','miód','🍯'],['juice','sok','🧃']]},
+  body:{name:'Części ciała',en:'my body',icon:'👋',words:[
+    ['face','twarz','🙂'],['hair','włosy','💇'],['arm','ramię','💪'],['finger','palec','☝️'],['tongue','język','👅'],
+    ['thumb','kciuk','👍'],['nail','paznokieć','💅'],['beard','broda','🧔'],['heart','serce','❤️'],['brain','mózg','🧠'],
+    ['bone','kość','🦴'],['eye','oko','👁️'],['ear','ucho','👂'],['nose','nos','👃'],['mouth','usta','👄'],
+    ['hand','ręka','✋'],['foot','stopa','🦶'],['leg','noga','🦵'],['tooth','ząb','🦷'],['lungs','płuca','🫁'],
+    ['blood','krew','🩸'],['skull','czaszka','💀'],['fist','pięść','✊'],['footprints','ślady stóp','👣']]},
+  home:{name:'Dom i rzeczy',en:'at home',icon:'🏠',words:[
+    ['house','dom','🏠'],['bed','łóżko','🛏️'],['chair','krzesło','🪑'],['door','drzwi','🚪'],['book','książka','📕'],
+    ['ball','piłka','⚽'],['car','samochód','🚗'],['clock','zegar','⏰'],['key','klucz','🔑'],['teddy bear','miś','🧸'],
+    ['sofa','kanapa','🛋️'],['window','okno','🪟'],['bath','wanna','🛁'],['shower','prysznic','🚿'],['toilet','toaleta','🚽'],
+    ['mirror','lustro','🪞'],['light bulb','żarówka','💡'],['TV','telewizor','📺'],['phone','telefon','📱'],['cup','kubek','☕'],
+    ['plate','talerz','🍽️'],['spoon','łyżka','🥄'],['knife and fork','sztućce','🍴'],['bowl','miska','🥣'],['soap','mydło','🧼'],
+    ['toothbrush','szczoteczka','🪥'],['sponge','gąbka','🧽'],['broom','miotła','🧹'],['basket','kosz','🧺'],['candle','świeczka','🕯️']]},
+  weather:{name:'Pogoda i pory roku',en:'weather',icon:'☀️',words:[
+    ['sun','słońce','☀️'],['rain','deszcz','🌧️'],['snow','śnieg','🌨️'],['cloud','chmura','☁️'],['wind','wiatr','🌬️'],
+    ['rainbow','tęcza','🌈'],['hot','gorąco','🥵'],['cold','zimno','🥶'],['storm','burza','⛈️'],['lightning','błyskawica','⚡'],
+    ['fog','mgła','🌫️'],['tornado','tornado','🌪️'],['umbrella','parasol','☂️'],['snowman','bałwan','⛄'],['ice','lód','🧊'],
+    ['thermometer','termometr','🌡️'],['spring','wiosna','🌷'],['summer','lato','🏖️'],['autumn','jesień','🍂'],['winter','zima','❄️'],
+    ['morning','rano','🌅'],['evening','wieczór','🌆'],['night','noc','🌃'],['wellies','kalosze','👢'],['wet','mokro','💦'],
+    ['moon','księżyc','🌙'],['star','gwiazda','⭐'],['sunglasses','okulary przeciwsłoneczne','🕶️'],['kite','latawiec','🪁'],['sledge','sanki','🛷']]},
+  family:{name:'Rodzina i ludzie',en:'people',icon:'👨‍👩‍👧',words:[
+    ['mum','mama','👩'],['dad','tata','👨'],['baby','dzidziuś','👶'],['sister','siostra','👧'],['brother','brat','👦'],
+    ['grandma','babcia','👵'],['grandpa','dziadek','👴'],['family','rodzina','👨‍👩‍👧‍👦'],['friends','przyjaciele','🧑‍🤝‍🧑'],['hug','przytulas','🫂'],
+    ['bride','panna młoda','👰'],['groom','pan młody','🤵'],['prince','książę','🤴'],['princess','księżniczka','👸'],['doctor','lekarz','🧑‍⚕️'],
+    ['police officer','policjant','👮'],['firefighter','strażak','🧑‍🚒'],['cook','kucharz','🧑‍🍳'],['farmer','rolnik','🧑‍🌾'],['builder','budowlaniec','👷'],
+    ['astronaut','astronauta','🧑‍🚀'],['artist','malarz','🧑‍🎨'],['singer','piosenkarz','🧑‍🎤'],['pilot','pilot','🧑‍✈️'],['scientist','naukowiec','🧑‍🔬'],
+    ['mechanic','mechanik','🧑‍🔧'],['wizard','czarodziej','🧙'],['fairy','wróżka','🧚'],['superhero','superbohater','🦸'],['clown','klaun','🤡']]},
+  feelings:{name:'Uczucia',en:'feelings',icon:'😀',words:[
+    ['happy','wesoły','😀'],['sad','smutny','😢'],['angry','zły','😠'],['scared','przestraszony','😨'],['tired','zmęczony','🥱'],
+    ['surprised','zdziwiony','😮'],['ill','chory','🤒'],['silly','śmieszny','🤪'],['in love','zakochany','😍'],['hungry','głodny','😋'],
+    ['sleepy','śpiący','😴'],['cool','fajny','😎'],['worried','zmartwiony','😟'],['shy','nieśmiały','😊'],['laughing','rozbawiony','😂'],
+    ['thinking','zamyślony','🤔'],['bored','znudzony','😑'],['cold','zmarznięty','🥶'],['hot','spocony','🥵'],['dizzy','zakręcony','😵‍💫'],
+    ['quiet','cicho','🤫'],['nervous','zdenerwowany','😬'],['calm','spokojny','😌'],['excited','podekscytowany','🤩'],['party','impreza','🥳'],
+    ['kiss','buziak','😘'],['hug','przytulam','🤗'],['wink','mrugam','😉'],['sorry','przepraszam','🥺'],['yucky','fuj','🤢']]},
+  clothes:{name:'Ubrania',en:'clothes',icon:'👕',words:[
+    ['T-shirt','koszulka','👕'],['dress','sukienka','👗'],['trousers','spodnie','👖'],['shoes','buty','👟'],['socks','skarpetki','🧦'],
+    ['cap','czapka z daszkiem','🧢'],['hat','kapelusz','🎩'],['coat','płaszcz','🧥'],['scarf','szalik','🧣'],['gloves','rękawiczki','🧤'],
+    ['glasses','okulary','👓'],['tie','krawat','👔'],['swimsuit','strój kąpielowy','🩱'],['bikini','bikini','👙'],['shorts','szorty','🩳'],
+    ['boots','kozaki','👢'],['high heels','szpilki','👠'],['sandals','sandały','👡'],['flip-flops','japonki','🩴'],['sunglasses','okulary przeciwsłoneczne','🕶️'],
+    ['crown','korona','👑'],['handbag','torebka','👜'],['backpack','plecak','🎒'],['bow','kokardka','🎀'],['ring','pierścionek','💍'],
+    ['purse','portmonetka','👛'],['umbrella','parasol','☂️'],['helmet','kask','⛑️'],['watch','zegarek','⌚'],['lipstick','szminka','💄']]},
+  transport:{name:'Pojazdy',en:'transport',icon:'🚌',words:[
+    ['car','samochód','🚗'],['bus','autobus','🚌'],['train','pociąg','🚂'],['plane','samolot','✈️'],['boat','łódka','⛵'],
+    ['bike','rower','🚲'],['tractor','traktor','🚜'],['helicopter','helikopter','🚁'],['rocket','rakieta','🚀'],['fire engine','wóz strażacki','🚒'],
+    ['police car','radiowóz','🚓'],['ambulance','karetka','🚑'],['taxi','taksówka','🚕'],['lorry','ciężarówka','🚚'],['motorbike','motocykl','🏍️'],
+    ['scooter','hulajnoga','🛴'],['ship','statek','🚢'],['tram','tramwaj','🚋'],['underground','metro','🚇'],['van','furgonetka','🚐'],
+    ['racing car','wyścigówka','🏎️'],['skateboard','deskorolka','🛹'],['canoe','kajak','🛶'],['sledge','sanki','🛷'],['parachute','spadochron','🪂'],
+    ['UFO','UFO','🛸'],['crane','dźwig','🏗️'],['motorboat','motorówka','🚤'],['wheel','koło','🛞'],['traffic lights','światła','🚦']]},
+  nature:{name:'Przyroda',en:'nature',icon:'🌳',words:[
+    ['tree','drzewo','🌳'],['flower','kwiat','🌸'],['leaf','liść','🍁'],['grass','trawa','🌿'],['mountain','góra','⛰️'],
+    ['sea','morze','🌊'],['moon','księżyc','🌙'],['star','gwiazda','⭐'],['mushroom','grzyb','🍄'],['butterfly','motyl','🦋'],
+    ['bee','pszczoła','🐝'],['fire','ogień','🔥'],['rock','kamień','🪨'],['wood','drewno','🪵'],['volcano','wulkan','🌋'],
+    ['desert','pustynia','🏜️'],['forest','las','🌲'],['cactus','kaktus','🌵'],['palm tree','palma','🌴'],['rose','róża','🌹'],
+    ['sunflower','słonecznik','🌻'],['tulip','tulipan','🌷'],['Earth','Ziemia','🌍'],['plant','roślinka','🌱'],['feather','pióro','🪶'],
+    ['nest','gniazdo','🪹'],['spider web','pajęczyna','🕸️'],['caterpillar','gąsienica','🐛'],['comet','kometa','☄️'],['planet','planeta','🪐']]},
+  shapes:{name:'Kształty',en:'shapes',icon:'🔺',words:[
+    ['circle','koło','🔵'],['square','kwadrat','🟩'],['triangle','trójkąt','🔺'],['star','gwiazda','⭐'],['heart','serce','❤️'],
+    ['diamond','romb','🔷'],['arrow','strzałka','➡️'],['crescent','półksiężyc','🌙'],['cube','sześcian','🧊'],['spiral','spirala','🌀'],
+    ['plus','plus','➕'],['minus','minus','➖'],['cross','iks','✖️'],['octagon','ośmiokąt','🛑'],['oval','owal','🥚'],
+    ['cylinder','walec','🥫'],['sphere','kula','🔮']]},
+  school:{name:'Szkoła',en:'school',icon:'🎒',words:[
+    ['school bag','plecak','🎒'],['pencil','ołówek','✏️'],['book','książka','📕'],['scissors','nożyczki','✂️'],['crayon','kredka','🖍️'],
+    ['ruler','linijka','📏'],['paint','farby','🎨'],['teacher','nauczyciel','🧑‍🏫'],['glue','klej','🧴'],['computer','komputer','💻'],
+    ['pen','długopis','🖊️'],['notebook','zeszyt','📓'],['paintbrush','pędzel','🖌️'],['abacus','liczydło','🧮'],['globe','globus','🌎'],
+    ['bell','dzwonek','🔔'],['pin','pinezka','📌'],['paperclip','spinacz','📎'],['letter','list','✉️'],['microscope','mikroskop','🔬'],
+    ['magnet','magnes','🧲'],['test tube','probówka','🧪'],['map','mapa','🗺️'],['trophy','puchar','🏆'],['medal','medal','🥇'],
+    ['question','pytanie','❓'],['alphabet','alfabet','🔤'],['numbers','cyfry','🔢'],['school','szkoła','🏫'],['student','uczeń','🧑‍🎓']]}
+};
+const $=id=>document.getElementById(id);
+let topic='animals', mode='learn', stars=0;
+try{stars=+localStorage.getItem('he-stars')||0}catch(e){}
+$('starCount').textContent=stars;
+
+/* --- mowa: angielski + polski lektor --- */
+const synth=window.speechSynthesis; let voice=null, voicePL=null;
+function pickVoice(){ if(!synth)return; const v=synth.getVoices();
+  voice=v.find(x=>/en-GB/i.test(x.lang)&&/female|Kate|Serena|Libby|Sonia/i.test(x.name))||v.find(x=>/en-GB/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null;
+  voicePL=v.find(x=>/^pl/i.test(x.lang)&&/Zosia|Paulina|Ewa|Agnieszka|female/i.test(x.name))||v.find(x=>/^pl/i.test(x.lang))||null}
+if(synth){pickVoice();synth.onvoiceschanged=pickVoice}
+let speakToken=0;
+/* parts: [[tekst,'en'|'pl'],...]; done wywoływane raz, gdy lektor skończy (albo po czasie bezpieczeństwa) */
+function say(parts,done){
+  const token=++speakToken; let fired=false;
+  const finish=()=>{if(fired||token!==speakToken)return;fired=true;done&&done()};
+  if(!synth){if(done)setTimeout(finish,1400);return}
+  try{
+    synth.cancel();
+    parts.forEach(([text,lang],i)=>{
+      const u=new SpeechSynthesisUtterance(text), v=lang==='pl'?voicePL:voice;
+      u.lang=v?v.lang:(lang==='pl'?'pl-PL':'en-GB'); if(v)u.voice=v;
+      u.rate=lang==='pl'?.95:.85; u.pitch=1.1;
+      if(i===parts.length-1){u.onend=()=>setTimeout(finish,350);u.onerror=finish}
+      synth.speak(u);
+    });
+    if(done)setTimeout(finish,1200+parts.reduce((n,[t])=>n+t.length*110,0));
+  }catch(e){if(done)setTimeout(finish,1400)}
+}
+const speak=text=>say([[text,'en']]);
+if(!synth)$('note').textContent='Ta przeglądarka nie umie czytać na głos, ale słówka i quiz działają normalnie. Za każdą dobrą odpowiedź jest gwiazdka.';
+
+function picture(w,t){
+  if(t==='colors'){const s=document.createElement('div');s.className='swatch';s.style.background=w[2];return s}
+  const d=document.createElement('div');
+  if(t==='numbers'){d.className='pic digit';d.textContent=w[2]} else {d.className='pic';d.textContent=w[2];d.setAttribute('aria-hidden','true')}
+  return d;
+}
+const speakerSvg='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9v6h4l5 4V5L8 9z"/></svg>';
+
+/* --- tematy --- */
+function renderTopics(){
+  const nav=$('topics');nav.innerHTML='';
+  for(const[k,t]of Object.entries(TOPICS)){
+    const b=document.createElement('button');b.className='topic';b.setAttribute('aria-pressed',k===topic);
+    b.innerHTML=`<span aria-hidden="true">${t.icon}</span>${t.name}`;
+    b.onclick=()=>{topic=k;renderTopics();renderMode();if(mode==='learn')speak(t.en)};nav.appendChild(b);
+  }
+}
+
+/* --- nauka --- */
+function renderLearn(){
+  const g=$('learn');g.innerHTML='';
+  TOPICS[topic].words.forEach(w=>{
+    const c=document.createElement('button');c.className='card';c.setAttribute('aria-label',`${w[0]} — ${w[1]}`);
+    c.appendChild(picture(w,topic));
+    c.insertAdjacentHTML('beforeend',`<div class="en">${w[0]}</div><div class="pl">${w[1]}</div>${synth?`<div class="say">${speakerSvg}posłuchaj</div>`:''}`);
+    c.onclick=()=>{speak(w[0]);c.classList.add('speaking');setTimeout(()=>c.classList.remove('speaking'),900)};
+    g.appendChild(c);
+  });
+}
+
+/* --- wspólne --- */
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const PRAISE=['Brawo!','Super!','Świetnie!','Ekstra!','Doskonale!'];
+const praise=()=>PRAISE[Math.random()*PRAISE.length|0];
+function addStar(){
+  stars++;$('starCount').textContent=stars;try{localStorage.setItem('he-stars',stars)}catch(e){}
+  const s=$('stars');s.classList.remove('pop');void s.offsetWidth;s.classList.add('pop');
+}
+
+/* --- quiz --- */
+const ROUND=5; let qList=[], qi=0, answered=false;
+function newQuiz(){qList=shuffle(TOPICS[topic].words).slice(0,ROUND);qi=0;showQ()}
+function askQ(){if(answered)return;const t=qList[qi];if(t)say([['Znajdź','pl'],[t[0],'en']])}
+function showQ(){
+  answered=false;$('feedback').textContent='';$('feedback').className='feedback';
+  $('progress').innerHTML=qList.map((_,i)=>`<i class="${i<qi?'done':''}"></i>`).join('');
+  const target=qList[qi];$('qWord').textContent=target[0];
+  const others=shuffle(TOPICS[topic].words.filter(w=>w!==target)).slice(0,3);
+  const opts=$('opts');opts.innerHTML='';
+  shuffle([target,...others]).forEach(w=>{
+    const b=document.createElement('button');b.className='opt';b.setAttribute('aria-label',w[1]);b.appendChild(picture(w,topic));
+    b.onclick=()=>answer(b,w===target,target);opts.appendChild(b);
+  });
+  askQ();
+}
+function answer(b,ok,target){
+  if(answered||mode!=='quiz')return;
+  if(ok){
+    answered=true;b.classList.add('right');
+    const p=praise();
+    $('feedback').textContent=`${p} „${target[0]}” to ${target[1]}.`;$('feedback').className='feedback ok';
+    addStar();
+    qi++;$('progress').innerHTML=qList.map((_,i)=>`<i class="${i<qi?'done':''}"></i>`).join('');
+    const end=qi>=ROUND;
+    say(end?[[p,'pl'],[target[0],'en'],['Koniec rundy! Gramy dalej.','pl']]:[[p,'pl'],[target[0],'en']],
+      ()=>{if(mode==='quiz')end?newQuiz():showQ()});
+  }else{
+    b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');
+    $('feedback').textContent='Spróbuj jeszcze raz!';$('feedback').className='feedback no';
+    say([['Spróbuj jeszcze raz. Znajdź','pl'],[target[0],'en']]);
+  }
+}
+$('listen').onclick=askQ;
+
+/* --- memory --- */
+const PAIRS=6; let mStyle='pic', mFirst=null, mLock=false, mFound=0;
+function newMemory(){
+  mFirst=null;mLock=false;mFound=0;$('mfeed').textContent='';$('mfeed').className='feedback';
+  const words=shuffle(TOPICS[topic].words).slice(0,PAIRS);
+  const cards=shuffle(words.flatMap(w=>[{w,face:'pic'},{w,face:mStyle==='pic'?'pic':'word'}]));
+  const g=$('mgrid');g.innerHTML='';
+  cards.forEach(c=>{
+    const b=document.createElement('button');b.className='mcard';b.setAttribute('aria-label','Zakryta karta');
+    const back=document.createElement('div');back.className='b';
+    if(c.face==='pic')back.appendChild(picture(c.w,topic));
+    else{const t=document.createElement('div');t.className='en';t.textContent=c.w[0];back.appendChild(t)}
+    b.innerHTML='<div class="in"><div class="f" aria-hidden="true">?</div></div>';
+    b.firstChild.appendChild(back);
+    b.onclick=()=>flip(b,c);
+    g.appendChild(b);
+  });
+  $('mpairs').textContent=`0 / ${PAIRS}`;
+}
+function flip(b,c){
+  if(mLock||b.classList.contains('open'))return;
+  b.classList.add('open');b.setAttribute('aria-label',`${c.w[0]} — ${c.w[1]}`);
+  if(!mFirst){mFirst={b,c};speak(c.w[0]);return}
+  const first=mFirst;mFirst=null;
+  if(first.c.w===c.w){
+    first.b.classList.add('done');b.classList.add('done');mFound++;addStar();
+    $('mpairs').textContent=`${mFound} / ${PAIRS}`;
+    if(mFound===PAIRS){
+      $('mfeed').textContent='Wszystkie pary! Brawo!';$('mfeed').className='feedback ok';mLock=true;
+      say([[c.w[0],'en'],['Wszystkie pary! Brawo! Gramy jeszcze raz.','pl']],()=>{if(mode==='memory')newMemory()});
+    }else{
+      const p=praise();$('mfeed').textContent=`${p} To para: ${c.w[0]}.`;$('mfeed').className='feedback ok';
+      say([[c.w[0],'en'],[p,'pl']]);
+    }
+  }else{
+    mLock=true;speak(c.w[0]);$('mfeed').textContent='To nie para. Szukaj dalej!';$('mfeed').className='feedback no';
+    setTimeout(()=>{first.b.classList.remove('open');b.classList.remove('open');
+      first.b.setAttribute('aria-label','Zakryta karta');b.setAttribute('aria-label','Zakryta karta');mLock=false},1300);
+  }
+}
+document.querySelectorAll('[data-mstyle]').forEach(b=>b.onclick=()=>{
+  mStyle=b.dataset.mstyle;document.querySelectorAll('[data-mstyle]').forEach(x=>x.setAttribute('aria-pressed',x===b));newMemory()});
+
+/* --- pomocnicze dla gier --- */
+let gen=0;
+const guard=fn=>{const g=gen;return(...a)=>{if(g===gen)fn(...a)}};
+const later=(fn,ms)=>setTimeout(guard(fn),ms);
+const pick=a=>a[Math.random()*a.length|0];
+const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+document.querySelectorAll('button.listen:empty').forEach(b=>b.innerHTML=SPK);
+function wrongFx(el){el.classList.remove('wrong');void el.offsetWidth;el.classList.add('wrong')}
+
+/* --- balony --- */
+const BCOL=['#ff6b6b','#ffa94d','#ffd43b','#69db7c','#4dabf7','#b197fc','#f783ac'];
+let bTarget=null,bScore=0;
+function announceB(){ $('btarget').innerHTML='';$('btarget').appendChild(picture(bTarget,topic)); say([['Przebij','pl'],[bTarget[0],'en']]) }
+function startBalloons(){
+  const ar=$('barena');ar.innerHTML='';bScore=0;$('bscore').textContent=0;
+  const words=TOPICS[topic].words, balloons=[], g=gen;
+  bTarget=pick(words);announceB();
+  function spawn(){
+    const w=Math.random()<.4?bTarget:pick(words);
+    const el=document.createElement('button');el.className='balloon';el.setAttribute('aria-label',w[1]);
+    el.style.setProperty('--bc',pick(BCOL));
+    const inner=document.createElement('div');inner.className='bin';inner.appendChild(picture(w,topic));el.appendChild(inner);
+    el.style.left=Math.random()*Math.max(0,ar.clientWidth-90)+'px';
+    const b={el,w,y:ar.clientHeight,sp:(45+Math.random()*25)*(1+Math.min(bScore,15)*.06),ph:Math.random()*6};
+    el.onpointerdown=e=>{e.preventDefault();hitB(b)};
+    ar.appendChild(el);balloons.push(b);
+  }
+  let last=0,t0=performance.now();
+  function loop(t){
+    if(g!==gen)return;
+    const dt=Math.min(.05,(t-t0)/1000);t0=t;
+    if(t-last>Math.max(600,1150-bScore*40)){last=t;spawn()}
+    for(let i=balloons.length-1;i>=0;i--){const b=balloons[i];
+      if(b.dead||b.y<-130){if(!b.dead)b.el.remove();balloons.splice(i,1);continue}
+      b.y-=b.sp*dt;b.ph+=dt*2;b.el.style.transform=`translate(${Math.sin(b.ph)*8}px,${b.y}px)`}
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+function hitB(b){
+  if(b.dead)return;
+  if(b.w===bTarget){
+    b.dead=true;b.el.classList.add('popped');setTimeout(()=>b.el.remove(),260);
+    addStar();bScore++;$('bscore').textContent=bScore;
+    const words=TOPICS[topic].words;let n;do{n=pick(words)}while(n===bTarget&&words.length>1);
+    bTarget=n;say([[praise(),'pl']],guard(announceB));
+  }else{
+    wrongFx(b.el.firstChild);say([['Nie, to','pl'],[b.w[0],'en'],['Przebij','pl'],[bTarget[0],'en']]);
+  }
+}
+$('bsay').onclick=()=>bTarget&&announceB();
+
+/* --- potworek --- */
+let monTarget=null,monBusy=false,monMiss=0;
+function askMon(){say([['Daj mi','pl'],[monTarget[0],'en']])}
+function startMonster(){
+  monBusy=false;monMiss=0;$('mon').className='monster';$('monfeed').textContent='';$('monfeed').className='feedback';
+  $('mbubble').textContent='?';
+  const opts=shuffle(TOPICS[topic].words).slice(0,4);monTarget=pick(opts);
+  const tray=$('tray');tray.innerHTML='';
+  opts.forEach(w=>{
+    const el=document.createElement('button');el.className='food';el.setAttribute('aria-label',w[1]);el.appendChild(picture(w,topic));
+    dragTo(el,$('mouth'),()=>feed(el,w));tray.appendChild(el);
+  });
+  askMon();
+}
+function dragTo(el,zone,onDrop){
+  el.addEventListener('pointerdown',e=>{
+    e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}
+    const sx=e.clientX,sy=e.clientY;let moved=false;
+    const mv=ev=>{const dx=ev.clientX-sx,dy=ev.clientY-sy;if(Math.abs(dx)+Math.abs(dy)>8)moved=true;
+      if(moved){el.classList.add('dragging');el.style.transform=`translate(${dx}px,${dy}px) scale(1.08)`}};
+    const up=ev=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);
+      el.classList.remove('dragging');el.style.transform='';
+      const r=zone.getBoundingClientRect(),pad=40;
+      const over=ev.clientX>r.left-pad&&ev.clientX<r.right+pad&&ev.clientY>r.top-pad&&ev.clientY<r.bottom+pad;
+      if(!moved||over)onDrop()};
+    el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+  });
+}
+function feed(el,w){
+  if(monBusy)return;const mon=$('mon');
+  if(w===monTarget){
+    monBusy=true;el.classList.add('gone');mon.className='monster chomp';addStar();
+    const p=praise();$('monfeed').textContent=`Mniam! ${p}`;$('monfeed').className='feedback ok';
+    say([['Yummy!','en'],[p,'pl'],[w[0],'en']],guard(startMonster));
+  }else{
+    monMiss++;mon.className='monster';void mon.offsetWidth;mon.className='monster no';wrongFx(el);
+    $('monfeed').textContent='Nie, nie! Spróbuj jeszcze raz.';$('monfeed').className='feedback no';
+    if(monMiss>=2){$('mbubble').innerHTML='';$('mbubble').appendChild(picture(monTarget,topic))}
+    say([['Nie, nie! To','pl'],[w[0],'en'],['Daj mi','pl'],[monTarget[0],'en']]);
+  }
+}
+$('msay').onclick=()=>monTarget&&askMon();
+
+/* --- co nie pasuje --- */
+const GROUP={animals:'zoo',wild:'zoo',sea:'zoo',weather:'out',nature:'out'};
+const grp=k=>GROUP[k]||k;
+let oBusy=false;
+function startOdd(){
+  oBusy=false;$('ofeed').textContent='';$('ofeed').className='feedback';
+  const words=TOPICS[topic].words,three=shuffle(words).slice(0,3);
+  const ens=new Set(words.map(w=>w[0])),pics=new Set(words.map(w=>w[2]));
+  const others=Object.keys(TOPICS).filter(k=>grp(k)!==grp(topic));
+  let ot,odd;
+  for(let i=0;i<50;i++){ot=pick(others);odd=pick(TOPICS[ot].words);if(!ens.has(odd[0])&&!pics.has(odd[2]))break}
+  const box=$('oopts');box.innerHTML='';
+  shuffle([...three.map(w=>[w,topic]),[odd,ot]]).forEach(([w,t])=>{
+    const b=document.createElement('button');b.className='opt';b.setAttribute('aria-label',w[1]);b.appendChild(picture(w,t));
+    b.onclick=()=>{
+      if(oBusy)return;
+      if(w===odd){oBusy=true;b.classList.add('right');addStar();const p=praise();
+        $('ofeed').textContent=`${p} „${w[0]}” tu nie pasuje.`;$('ofeed').className='feedback ok';
+        say([[p,'pl'],[w[0],'en'],['tu nie pasuje.','pl']],guard(startOdd));
+      }else{wrongFx(b);$('ofeed').textContent='Ten pasuje. Szukaj dalej!';$('ofeed').className='feedback no';
+        say([[w[0],'en'],['pasuje. Szukaj dalej!','pl']])}
+    };
+    box.appendChild(b);
+  });
+  say([['Co tu nie pasuje?','pl']]);
+}
+$('osay').onclick=()=>say([['Co tu nie pasuje?','pl']]);
+
+/* --- kolorowanie --- */
+const CHEX=Object.fromEntries(TOPICS.colors.words.slice(0,10).map(w=>[w[0],w[2]]));
+const CPL=Object.fromEntries(TOPICS.colors.words.slice(0,10).map(w=>[w[0],w[1]]));
+const arc=(r,p)=>`<path class="reg st" data-p="${p}" d="M${100-r},175 A${r},${r} 0 0 1 ${100+r},175"/>`;
+const petals=[0,60,120,180,240,300].map(a=>{const x=100+26*Math.cos(a*Math.PI/180),y=78+26*Math.sin(a*Math.PI/180);return`<circle class="reg" data-p="petals" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="20"/>`}).join('');
+const rays=[0,45,90,135,180,225,270,315].map(a=>{const c=Math.cos(a*Math.PI/180),s=Math.sin(a*Math.PI/180);return`<line class="reg st" data-p="rays" x1="${(100+58*c).toFixed(1)}" y1="${(100+58*s).toFixed(1)}" x2="${(100+84*c).toFixed(1)}" y2="${(100+84*s).toFixed(1)}"/>`}).join('');
+const PICS=[
+  {svg:`<polygon class="reg" data-p="roof" points="25,98 100,32 175,98"/><rect class="reg" data-p="wall" x="40" y="96" width="120" height="88"/><rect class="reg" data-p="door" x="87" y="132" width="28" height="52"/><rect class="reg" data-p="window" x="52" y="110" width="26" height="24"/><rect class="reg" data-p="window" x="122" y="110" width="26" height="24"/>`,
+   steps:[['roof','dach','red'],['wall','ściany','yellow'],['door','drzwi','brown'],['window','okna','blue']]},
+  {svg:`<rect class="reg" data-p="trunk" x="88" y="118" width="24" height="66"/><circle class="reg" data-p="leaves" cx="100" cy="82" r="58"/><circle class="reg" data-p="apples" cx="76" cy="70" r="11"/><circle class="reg" data-p="apples" cx="120" cy="60" r="11"/><circle class="reg" data-p="apples" cx="106" cy="102" r="11"/>`,
+   steps:[['leaves','liście','green'],['trunk','pień','brown'],['apples','jabłka','red']]},
+  {svg:`<rect class="reg" data-p="stem" x="95" y="100" width="10" height="88"/><ellipse class="reg" data-p="stem" cx="124" cy="152" rx="20" ry="9"/>${petals}<circle class="reg" data-p="centre" cx="100" cy="78" r="18"/>`,
+   steps:[['petals','płatki','pink'],['centre','środek kwiatka','yellow'],['stem','łodygę','green']]},
+  {svg:`<path class="reg" data-p="car" d="M20,140 L20,112 Q22,100 40,98 L60,98 L78,64 L138,64 L158,98 L170,100 Q182,104 182,118 L182,140 Z"/><polygon class="reg" data-p="windows" points="68,98 84,72 105,72 105,98"/><polygon class="reg" data-p="windows" points="113,72 133,72 147,98 113,98"/><circle class="reg" data-p="wheels" cx="58" cy="142" r="19"/><circle class="reg" data-p="wheels" cx="146" cy="142" r="19"/>`,
+   steps:[['car','samochód','red'],['windows','szyby','blue'],['wheels','koła','black']]},
+  {svg:`<polygon class="reg" data-p="tail" points="148,100 190,66 190,134"/><ellipse class="reg" data-p="fish" cx="95" cy="100" rx="62" ry="40"/><circle class="eye" cx="62" cy="92" r="6"/>`,
+   steps:[['fish','rybkę','orange'],['tail','ogon','purple']]},
+  {svg:`${rays}<circle class="reg" data-p="sun" cx="100" cy="100" r="46"/>`,
+   steps:[['sun','słońce','yellow'],['rays','promienie','orange']]},
+  {svg:arc(90,'r1')+arc(76,'r2')+arc(62,'r3')+arc(48,'r4')+arc(34,'r5')+arc(20,'r6'),
+   steps:[['r1',null,'red'],['r2',null,'orange'],['r3',null,'yellow'],['r4',null,'green'],['r5',null,'blue'],['r6',null,'purple']]}
+];
+let cPic=0,cStep=0,cColor=null,cBusy=false;
+(function buildPalette(){
+  const p=$('palette');
+  Object.entries(CHEX).forEach(([en,hex])=>{
+    const b=document.createElement('button');b.style.background=hex;b.setAttribute('aria-label',CPL[en]);b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{cColor=en;p.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));speak(en)};
+    p.appendChild(b);
+  });
+})();
+function cInstr(){const s=PICS[cPic].steps[cStep];$('cinstr').textContent=`Pomaluj ${s[1]||'ten pasek'} na ${CPL[s[2]]}`;
+  say([[`Pomaluj ${s[1]||'ten pasek'} na`,'pl'],[s[2],'en']])}
+function markCur(){const s=PICS[cPic].steps[cStep];$('cpic').querySelectorAll('.reg').forEach(r=>r.classList.toggle('cur',!!s&&r.dataset.p===s[0]))}
+function startColour(){
+  cStep=0;cBusy=false;$('cpic').innerHTML=PICS[cPic].svg;markCur();cInstr();
+  $('cpic').querySelectorAll('.reg').forEach(r=>r.addEventListener('click',()=>paint(r)));
+}
+function paint(r){
+  if(cBusy)return;const s=PICS[cPic].steps[cStep];if(!s)return;
+  if(r.dataset.p!==s[0]){cInstr();return}
+  if(!cColor){say([['Najpierw wybierz kolor. Potrzebujemy','pl'],[s[2],'en']]);return}
+  if(cColor!==s[2]){say([['Nie, to','pl'],[cColor,'en'],['Pomaluj na','pl'],[s[2],'en']]);return}
+  $('cpic').querySelectorAll(`[data-p="${s[0]}"]`).forEach(x=>{if(x.classList.contains('st'))x.style.stroke=CHEX[s[2]];else x.style.fill=CHEX[s[2]]});
+  addStar();cStep++;markCur();
+  if(cStep>=PICS[cPic].steps.length){cBusy=true;$('cinstr').textContent='Pięknie! Gotowe!';
+    say([['Pięknie! Gotowe!','pl']],guard(()=>later(()=>{cPic=(cPic+1)%PICS.length;startColour()},1200)));
+  }else{cBusy=true;say([[praise(),'pl']],guard(()=>{cBusy=false;cInstr()}))}
+}
+$('csay').onclick=()=>PICS[cPic].steps[cStep]&&cInstr();
+
+/* --- liczenie --- */
+let nAns=0,nBusy=false,nCounted=0;
+function askN(){say([['Ile jest?','pl'],['How many?','en']])}
+function startCount(){
+  nBusy=false;nCounted=0;$('nfeed').textContent='';$('nfeed').className='feedback';
+  const ct=topic==='numbers'?'food':topic, w=pick(TOPICS[ct].words);nAns=1+(Math.random()*10|0);
+  const g=$('cgrid');g.innerHTML='';
+  for(let i=0;i<nAns;i++){const d=document.createElement('button');d.className='citem';d.setAttribute('aria-label',w[1]);d.appendChild(picture(w,ct));
+    d.onclick=()=>{if(d.classList.contains('counted'))return;nCounted++;d.classList.add('counted');
+      const b=document.createElement('b');b.textContent=nCounted;d.appendChild(b);speak(NUM_EN[nCounted-1])};
+    g.appendChild(d)}
+  const set=new Set([nAns]);while(set.size<3){const x=Math.max(1,Math.min(10,nAns+pick([-3,-2,-1,1,2,3])));set.add(x)}
+  const o=$('nopts');o.innerHTML='';
+  shuffle([...set]).forEach(n=>{const b=document.createElement('button');b.className='nopt';b.textContent=n;b.setAttribute('aria-label',String(n));
+    b.onclick=()=>{
+      if(nBusy)return;
+      if(n===nAns){nBusy=true;b.classList.add('right');addStar();const p=praise();
+        $('nfeed').textContent=`${p} To ${NUM_PL[n-1]}.`;$('nfeed').className='feedback ok';
+        say([[NUM_EN[n-1],'en'],[p,'pl']],guard(startCount));
+      }else{wrongFx(b);$('nfeed').textContent='Policz jeszcze raz!';$('nfeed').className='feedback no';
+        say([['To','pl'],[NUM_EN[n-1],'en'],['Policz jeszcze raz!','pl']])}
+    };o.appendChild(b)});
+  askN();
+}
+$('nsay').onclick=askN;
+
+/* --- gdzie jest? (kubki) --- */
+let uTarget=null,uState='show',uLevel=0,uPos=[0,1,2],uHome=0;
+function askU(){say([[`Where is the ${uTarget[0]}?`,'en']])}
+function startCups(){
+  const box=$('cupsbox');box.innerHTML='';uState='show';uPos=[0,1,2];uHome=Math.random()*3|0;
+  $('ufeed').textContent='';$('ufeed').className='feedback';$('ulabel').textContent='Patrz uważnie!';
+  uTarget=pick(TOPICS[topic].words);
+  for(let i=0;i<3;i++){
+    const s=document.createElement('button');s.className='slot up';s.style.left=(i*33.33)+'%';s.setAttribute('aria-label','Kubek '+(i+1));
+    const it=document.createElement('div');it.className='it';if(i===uHome)it.appendChild(picture(uTarget,topic));
+    const cup=document.createElement('div');cup.className='cup';
+    s.append(it,cup);s.onclick=()=>pickCup(i,s);box.appendChild(s);
+  }
+  say([['Patrz!','pl'],[uTarget[0],'en']]);
+  later(()=>{box.querySelectorAll('.slot').forEach(s=>s.classList.remove('up'));
+    let n=4+Math.min(uLevel,6);
+    const swap=()=>{if(n--<=0){uState='guess';$('ulabel').textContent='Gdzie jest? Kliknij kubek.';askU();return}
+      const a=Math.random()*3|0;let b=(a+1+(Math.random()*2|0))%3;[uPos[a],uPos[b]]=[uPos[b],uPos[a]];
+      box.querySelectorAll('.slot').forEach((s,i)=>s.style.left=(uPos[i]*33.33)+'%');later(swap,Math.max(330,560-uLevel*35))};
+    later(swap,700)},2200);
+}
+function pickCup(i,s){
+  if(uState!=='guess'||s.classList.contains('up'))return;
+  s.classList.add('up');
+  if(i===uHome){uState='done';uLevel++;addStar();const p=praise();
+    $('ufeed').textContent=`${p} Znalazłeś!`;$('ufeed').className='feedback ok';
+    say([[p,'pl'],[`Here is the ${uTarget[0]}!`,'en']],guard(()=>later(startCups,700)));
+  }else{$('ufeed').textContent='Pusto! Szukaj dalej.';$('ufeed').className='feedback no';say([['Pusto! Szukaj dalej.','pl']])}
+}
+$('usay').onclick=()=>uTarget&&(uState==='guess'?askU():say([[uTarget[0],'en']]));
+
+/* --- powtarzaj --- */
+let sList=[],sIdx=0,sPlay=true;
+function updPlay(){$('splay').innerHTML=sPlay?'<span aria-hidden="true">⏸</span> Pauza':'<span aria-hidden="true">▶</span> Dalej'}
+function startShow(){sList=shuffle(TOPICS[topic].words);sIdx=0;sPlay=true;updPlay();$('sturn').hidden=true;
+  showCard();say([['Słuchaj i powtarzaj za mną!','pl']],guard(stepShow))}
+function showCard(){const w=sList[sIdx%sList.length];$('sbig').innerHTML='';$('sbig').appendChild(picture(w,topic));
+  $('sword').textContent=w[0];$('scount').textContent=`${sIdx%sList.length+1} / ${sList.length}`}
+function stepShow(){
+  if(!sPlay)return;showCard();$('sturn').hidden=true;const w=sList[sIdx%sList.length];
+  say([[w[0],'en']],guard(()=>{$('sturn').hidden=false;later(()=>{sIdx++;stepShow()},2600)}));
+}
+$('splay').onclick=()=>{sPlay=!sPlay;updPlay();gen++;if(synth)synth.cancel();speakToken++;$('sturn').hidden=true;if(sPlay)stepShow()};
+$('sbig').onclick=()=>speak(sList[sIdx%sList.length][0]);
+
+/* --- tryby --- */
+const MODES=[
+  ['learn','Uczę się','📖',renderLearn],['quiz','Quiz','🎯',newQuiz],['memory','Memory','🃏',newMemory],
+  ['balloons','Balony','🎈',startBalloons],['monster','Potworek','👾',startMonster],['odd','Co nie pasuje?','🔍',startOdd],
+  ['colour','Kolorowanie','🖍️',startColour],['count','Liczenie','🧮',startCount],['cups','Gdzie jest?','🙈',startCups]];
+function renderMode(){gen++;if(synth)synth.cancel();speakToken++;MODES.find(m=>m[0]===mode)[3]()}
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('#games button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m));
+  MODES.forEach(([k])=>$(k).hidden=k!==m);
+  renderMode();
+}
+(function buildModes(){const nav=$('games');
+  MODES.forEach(([k,label,icon])=>{const b=document.createElement('button');b.dataset.mode=k;b.setAttribute('aria-pressed',k===mode);
+    b.innerHTML=`<span aria-hidden="true">${icon}</span>${label}`;b.onclick=()=>setMode(k);nav.appendChild(b)})})();
+
+renderTopics();renderLearn();
+})();
+</script>
+
+<a href="index.html" class="home-btn" aria-label="Wróć do wszystkich gier">🏠</a>
+<style>.home-btn{position:fixed;z-index:99;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}</style>
+</body>
+</html>

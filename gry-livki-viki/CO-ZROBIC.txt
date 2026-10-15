@@ -1,0 +1,26 @@
+Gry i zabawy Livki i Viki — jak wrzucić na Vercel
+
+W folderze:
+  index.html      strona startowa z kafelkami
+  angielski.html  zabawy po angielsku
+  waz.html        gra w węża
+  quizy.html      bajkowe quizy
+  siostry.html    gry dla dwóch sióstr
+  manifest.webmanifest, icon-*.png, apple-touch-icon.png  ikonka na ekran tabletu
+
+Sposób 1: przez stronę (bez programowania)
+  1. Załóż konto na github.com i utwórz nowe repozytorium, np. "gry-livki-viki".
+  2. Kliknij "uploading an existing file" i przeciągnij WSZYSTKIE pliki z tego folderu. Zatwierdź (Commit).
+  3. Wejdź na vercel.com, zaloguj się przez GitHub, kliknij "Add New… → Project".
+  4. Wybierz repozytorium, przy "Framework Preset" zostaw "Other", kliknij "Deploy".
+  5. Po chwili dostaniesz adres typu https://gry-livki-viki.vercel.app
+
+Sposób 2: z terminala (jeśli masz Node.js)
+  1. Otwórz terminal w tym folderze.
+  2. Wpisz: npx vercel   (pierwszy raz poprosi o zalogowanie)
+  3. Na pytania odpowiadaj Enterem. Na koniec: npx vercel --prod
+
+Na tablecie:
+  Otwórz adres w przeglądarce i wybierz "Dodaj do ekranu głównego"
+  (Safari: przycisk Udostępnij; Chrome: menu ⋮). Pojawi się ikonka z tęczą,
+  a gry otworzą się na cały ekran jak aplikacja. Domek 🏠 w rogu wraca do menu.

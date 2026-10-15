@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eaf6ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gry Livki i Viki">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Wąż LCD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: jeden kieszonkowy "konsolowy" korpus na środku — ekran LCD u góry, krzyżak i przyciski pod nim. Celowo jeden wygląd (bez trybu ciemnego/jasnego). */
+:root{
+  --desk:#2b3a33;      /* tło za konsolą */
+  --shell:#d9d4c7;     /* plastik obudowy */
+  --shell-dark:#b9b3a3;
+  --bezel:#3d4148;     /* ramka ekranu */
+  --lcd:#a7b98a;       /* zielonkawy ekran */
+  --lcd-dim:#97a97b;
+  --pixel:#26301f;     /* "ciekłe kryształy" */
+  --pixel-ghost:rgba(38,48,31,.08);
+  --key:#2f3238;
+  --accent:#b8323a;    /* czerwone przyciski A/B */
+  --ink:#4a4a44;
+  --display:"Silkscreen","Courier New",monospace;
+  --body:"Space Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  background:radial-gradient(120% 90% at 50% 0%,#36483f 0%,var(--desk) 60%);
+  color:var(--shell);font-family:var(--body);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:16px;box-sizing:border-box;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;
+}
+.device{
+  width:min(100%,400px);box-sizing:border-box;
+  background:linear-gradient(170deg,var(--shell) 0%,var(--shell-dark) 100%);
+  border-radius:18px 18px 56px 18px;
+  padding:20px 20px 26px;
+  box-shadow:0 2px 0 rgba(255,255,255,.5) inset,0 -4px 0 rgba(0,0,0,.12) inset,0 24px 50px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;gap:18px;
+}
+.bezel{background:var(--bezel);border-radius:10px 10px 30px 10px;padding:14px 18px 16px;display:flex;flex-direction:column;gap:8px}
+.bezel-top{display:flex;align-items:center;gap:8px;font-family:var(--body);font-size:10px;letter-spacing:.12em;color:#9aa0a8;text-transform:uppercase}
+.led{width:7px;height:7px;border-radius:50%;background:#4a1d20;transition:background .2s}
+.led.on{background:#ff4b55;box-shadow:0 0 6px #ff4b55}
+.screen{position:relative;background:var(--lcd);border-radius:3px;box-shadow:inset 0 2px 6px rgba(0,0,0,.35);padding:6px;display:flex;flex-direction:column;gap:4px}
+.hud{display:flex;justify-content:space-between;font-family:var(--display);color:var(--pixel);font-size:13px;font-variant-numeric:tabular-nums;padding:0 2px}
+canvas{display:block;width:100%;aspect-ratio:1;max-width:100%;image-rendering:pixelated;border-top:2px solid var(--pixel);}
+.overlay{position:absolute;inset:26px 6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;background:rgba(167,185,138,.86);color:var(--pixel);font-family:var(--display)}
+.overlay h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.04em;line-height:1}
+.overlay p{margin:0;font-family:var(--body);font-size:12px;line-height:1.5;max-width:24ch}
+.overlay .big{font-family:var(--display);font-size:13px}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+.brand{display:flex;justify-content:space-between;align-items:baseline;color:var(--ink);padding:0 4px}
+.brand b{font-family:var(--display);font-size:18px;letter-spacing:.02em}
+.brand span{font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.controls{display:flex;justify-content:space-between;align-items:center;padding:0 4px}
+.dpadzone{padding:14px;margin:-14px;touch-action:none;--k:clamp(48px,16vw,64px)}
+.dpad{display:grid;grid-template-columns:repeat(3,var(--k));grid-template-rows:repeat(3,var(--k));pointer-events:none}
+.dpad button,.ab button,.small button{font:inherit;cursor:pointer;border:0}
+.dpad button{background:var(--key);color:#7d828b;font-size:20px;box-shadow:0 3px 0 #17191c}
+.dpad button.press{color:#c9ced6}
+.dpad button:active,.dpad button.press{transform:translateY(2px);box-shadow:0 1px 0 #17191c}
+.dpad .u{grid-area:1/2;border-radius:6px 6px 0 0}.dpad .l{grid-area:2/1;border-radius:6px 0 0 6px}
+.dpad .r{grid-area:2/3;border-radius:0 6px 6px 0}.dpad .d{grid-area:3/2;border-radius:0 0 6px 6px}
+.dpad .c{grid-area:2/2;background:var(--key);box-shadow:0 3px 0 #17191c}
+.ab{display:flex;gap:10px;transform:rotate(-22deg)}
+.ab div{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink);font-family:var(--display);font-size:12px}
+.ab button{width:48px;height:48px;border-radius:50%;background:var(--accent);box-shadow:0 4px 0 #7a1d23,inset 0 2px 0 rgba(255,255,255,.25)}
+.ab button:active{transform:translateY(3px);box-shadow:0 1px 0 #7a1d23}
+.small{display:flex;justify-content:center;gap:22px}
+.small div{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--ink);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.small button{width:52px;height:12px;border-radius:7px;background:#8e897b;transform:rotate(-22deg);box-shadow:0 2px 0 #6b675c}
+.small button:active{transform:rotate(-22deg) translateY(2px);box-shadow:none}
+button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.help{font-size:12px;color:#b9c6bd;text-align:center;max-width:44ch;line-height:1.6;margin:0}
+kbd{font-family:var(--body);background:rgba(255,255,255,.1);border-radius:3px;padding:0 5px}
+@media (max-width:360px){.ab button{width:42px;height:42px}}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}}
+</style>
+</head>
+<body>
+
+
+<main class="device">
+  <section class="bezel">
+    <div class="bezel-top"><span class="led" id="led"></span><span>Zasilanie</span><span style="margin-left:auto">Dot matrix · 20×20</span></div>
+    <div class="screen">
+      <div class="hud"><span>PKT <span id="score">0000</span></span><span>LV <span id="level">1</span></span><span>REK <span id="best">0000</span></span></div>
+      <canvas id="c" width="400" height="400" aria-label="Plansza gry Wąż"></canvas>
+      <div class="overlay" id="ov">
+        <h1>WĄŻ</h1>
+        <p>Zjadaj kropki i rośnij. Przechodzisz przez ściany i nie możesz zginąć.</p>
+        <span class="big blink" id="ovcta">START: A / SPACJA</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="brand"><b>WĄŻ-1</b><span>kieszonkowa konsola</span></div>
+
+  <div class="controls">
+    <div class="dpadzone" id="dpz"><div class="dpad">
+      <button class="u" data-dir="up" aria-label="Góra">▲</button>
+      <button class="l" data-dir="left" aria-label="Lewo">◀</button>
+      <span class="c"></span>
+      <button class="r" data-dir="right" aria-label="Prawo">▶</button>
+      <button class="d" data-dir="down" aria-label="Dół">▼</button>
+    </div></div>
+    <div class="ab">
+      <div><button id="btnB" aria-label="Pauza"></button>B</div>
+      <div><button id="btnA" aria-label="Start"></button>A</div>
+    </div>
+  </div>
+
+  <div class="small">
+    <div><button id="btnStart" aria-label="Nowa gra"></button>Start</div>
+  </div>
+</main>
+
+<p class="help">Sterowanie: <kbd>←↑→↓</kbd> lub <kbd>WASD</kbd>, przesuwanie palcem po ekranie albo krzyżak. <kbd>Spacja</kbd> start i pauza. Co 5 kropek gra przyspiesza. Wąż przechodzi przez ściany i przez samego siebie, więc gra nigdy się nie kończy.</p>
+
+<script>
+(()=>{
+const N=20, C=document.getElementById('c'), x=C.getContext('2d'), S=C.width/N;
+const PIX='#26301f', GHOST='rgba(38,48,31,.07)';
+const $=id=>document.getElementById(id);
+const ov=$('ov'), led=$('led');
+let snake, dir, queue, food, score, level, state='title', timer=null, walls=false, flash=0;
+let best=0; try{best=+localStorage.getItem('snake-best')||0}catch(e){}
+const pad=n=>String(n).padStart(4,'0');
+$('best').textContent=pad(best);
+
+function reset(){
+  snake=[{x:9,y:10},{x:8,y:10},{x:7,y:10}];
+  dir={x:1,y:0}; queue=[]; score=0; level=1; placeFood(); hud();
+}
+function placeFood(){
+  do{food={x:Math.random()*N|0,y:Math.random()*N|0}}while(snake.some(s=>s.x===food.x&&s.y===food.y));
+}
+function hud(){$('score').textContent=pad(score);$('level').textContent=level;$('best').textContent=pad(best)}
+const speed=()=>Math.max(55,150-(level-1)*12);
+
+function cell(cx,cy,on,inset=1){
+  const p=S*.1*inset;
+  x.fillStyle=on?PIX:GHOST; x.fillRect(cx*S+p,cy*S+p,S-2*p,S-2*p);
+}
+function draw(){
+  x.clearRect(0,0,C.width,C.height);
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++)cell(i,j,false);
+  if(walls){x.strokeStyle=PIX;x.lineWidth=3;x.strokeRect(1.5,1.5,C.width-3,C.height-3)}
+  // jedzenie: romb
+  const fx=food.x*S+S/2, fy=food.y*S+S/2, r=S*.38;
+  if(!(flash&1)){x.fillStyle=PIX;x.beginPath();x.moveTo(fx,fy-r);x.lineTo(fx+r,fy);x.lineTo(fx,fy+r);x.lineTo(fx-r,fy);x.fill()}
+  snake.forEach((s,i)=>{
+    cell(s.x,s.y,true,i===0?.4:1);
+    if(i===0){ // oczy
+      x.fillStyle='#a7b98a'; const e=S*.13, ox=s.x*S+S/2, oy=s.y*S+S/2;
+      const px=dir.y?S*.2:0, py=dir.x?S*.2:0, fx2=dir.x*S*.15, fy2=dir.y*S*.15;
+      x.fillRect(ox+fx2-px-e/2,oy+fy2-py-e/2,e,e); x.fillRect(ox+fx2+px-e/2,oy+fy2+py-e/2,e,e);
+    }
+  });
+}
+function step(){
+  if(queue.length) dir=queue.shift();
+  let h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  if(!walls){h.x=(h.x+N)%N;h.y=(h.y+N)%N}
+  const out=h.x<0||h.y<0||h.x>=N||h.y>=N;
+  const ate=h.x===food.x&&h.y===food.y;
+  const body=ate?snake:snake.slice(0,-1);
+  snake.unshift(h);
+  if(ate){
+    score+=level; if(snake.length%5===3){level++;restart()}
+    if(score>best){best=score;try{localStorage.setItem('snake-best',best)}catch(e){}}
+    placeFood(); hud(); if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}
+  } else snake.pop();
+  draw();
+}
+function restart(){clearInterval(timer);timer=setInterval(step,speed())}
+function start(){reset();state='play';ov.hidden=true;led.classList.add('on');draw();restart()}
+function pause(){
+  if(state==='play'){state='pause';clearInterval(timer);show('PAUZA','Gra wstrzymana.','DALEJ: B / SPACJA')}
+  else if(state==='pause'){state='play';ov.hidden=true;restart()}
+}
+function over(){
+  clearInterval(timer);state='over';led.classList.remove('on');
+  let n=0;const f=setInterval(()=>{flash=n;draw();if(++n>5){clearInterval(f);flash=0;
+    show('KONIEC',`Wynik: ${score} pkt, długość ${snake.length}.`+(score&&score===best?' Nowy rekord!':''),'JESZCZE RAZ: A / SPACJA')}},120);
+}
+function show(t,p,cta){ov.querySelector('h1').textContent=t;ov.querySelector('p').textContent=p;$('ovcta').textContent=cta;ov.hidden=false}
+function primary(){state==='play'||state==='pause'?pause():start()}
+
+const DIRS={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+function turn(name){
+  const d=DIRS[name]; if(!d)return;
+  if(state!=='play'){if(state==='title'||state==='over')start();else return}
+  const last=queue.length?queue[queue.length-1]:dir;
+  if(d.x===-last.x&&d.y===-last.y||d.x===last.x&&d.y===last.y)return;
+  if(queue.length<3)queue.push(d);
+}
+const KEYS={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
+addEventListener('keydown',e=>{
+  if(KEYS[e.code]){e.preventDefault();turn(KEYS[e.code]);const b=document.querySelector(`[data-dir=${KEYS[e.code]}]`);b.classList.add('press');setTimeout(()=>b.classList.remove('press'),90)}
+  else if(e.code==='Space'||e.code==='Enter'){e.preventDefault();primary()}
+  else if(e.code==='KeyP'||e.code==='Escape'){if(state==='play'||state==='pause')pause()}
+});
+/* krzyżak jak joystick: liczy się kierunek palca od środka, można przesuwać palec bez odrywania */
+(()=>{
+  const z=document.getElementById('dpz'),pad=z.firstElementChild;let active=null,lastDir=null;
+  const mark=d=>document.querySelectorAll('[data-dir]').forEach(b=>b.classList.toggle('press',b.dataset.dir===d));
+  const aim=e=>{const r=pad.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
+    if(Math.hypot(dx,dy)<r.width*.12)return;
+    const d=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');
+    if(d!==lastDir){lastDir=d;mark(d);turn(d);if(navigator.vibrate)try{navigator.vibrate(8)}catch(_){}}};
+  z.addEventListener('pointerdown',e=>{e.preventDefault();active=e.pointerId;lastDir=null;try{z.setPointerCapture(e.pointerId)}catch(_){}aim(e)});
+  z.addEventListener('pointermove',e=>{if(e.pointerId===active)aim(e)});
+  const up=e=>{if(e.pointerId!==active)return;active=null;lastDir=null;mark(null)};
+  z.addEventListener('pointerup',up);z.addEventListener('pointercancel',up);
+})();
+$('btnA').addEventListener('click',primary);
+$('btnB').addEventListener('click',()=>{if(state==='play'||state==='pause')pause()});
+$('btnStart').addEventListener('click',start);
+// przesuwanie palcem
+let t0=null; const scr=document.querySelector('.screen');
+scr.addEventListener('touchstart',e=>{t0=e.touches[0]},{passive:true});
+scr.addEventListener('touchmove',e=>{if(state==='play')e.preventDefault()},{passive:false});
+scr.addEventListener('touchend',e=>{if(!t0)return;const t=e.changedTouches[0],dx=t.clientX-t0.clientX,dy=t.clientY-t0.clientY;t0=null;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<20){if(state!=='play')primary();return}
+  turn(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'))});
+scr.addEventListener('click',()=>{if(state==='title'||state==='over')start()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play')pause()});
+
+reset();
+// ekran tytułowy: ładny wąż w tle
+snake=[{x:12,y:13},{x:11,y:13},{x:10,y:13},{x:9,y:13},{x:8,y:13},{x:7,y:13}];food={x:15,y:13};draw();
+})();
+</script>
+
+<a href="index.html" class="home-btn" aria-label="Wróć do wszystkich gier">🏠</a>
+<style>.home-btn{position:fixed;z-index:99;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}</style>
+</body>
+</html>
