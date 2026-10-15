@@ -191,6 +191,20 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,42px);mar
 .sword{font-family:var(--display);font-weight:800;font-size:34px}
 .sturn{font-family:var(--display);font-weight:700;font-size:24px;color:var(--good);animation:pop 1s infinite}
 .scount{color:var(--muted);font-variant-numeric:tabular-nums}
+/* rozdzielenie: tematy w jednym przesuwanym pasku u góry, zabawy w osobnym pasku na dole ekranu */
+.sect{display:flex;align-items:baseline;gap:8px;font-family:var(--display);font-weight:800;font-size:20px;color:var(--ink);margin-bottom:-14px}
+.sect small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.topics{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:10px;padding:4px 2px 12px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.topic{flex:0 0 auto;width:108px;scroll-snap-align:start;padding:10px 6px}
+.topic span{font-size:46px}
+.topic[aria-pressed="true"]{transform:none}
+.games{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:8px;overflow-x:auto;justify-content:safe center;
+  padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));
+  background:#1d2b4f;box-shadow:0 -8px 24px rgba(0,0,0,.2);border-radius:26px 26px 0 0}
+.games button{flex:0 0 auto;width:86px;border:0;background:rgba(255,255,255,.1);color:#fff;box-shadow:none;border-radius:20px;font-size:12.5px;padding:8px 4px}
+.games button span{font-size:32px}
+.games button[aria-pressed="true"]{background:#ffc531;color:#3b2900}
+body{padding-bottom:calc(130px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -209,6 +223,7 @@ h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,42px);mar
     </div>
   </header>
 
+  <div class="sect"><span aria-hidden="true">📚</span> Tematy <small>przesuń palcem w bok</small></div>
   <nav class="topics" id="topics" aria-label="Tematy"></nav>
 
   <nav class="games" id="games" aria-label="Zabawy"></nav>
@@ -441,12 +456,13 @@ const speakerSvg='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9v6h4
 
 /* --- tematy --- */
 function renderTopics(){
-  const nav=$('topics');nav.innerHTML='';
+  const nav=$('topics'),sl=nav.scrollLeft;nav.innerHTML='';
   for(const[k,t]of Object.entries(TOPICS)){
     const b=document.createElement('button');b.className='topic';b.setAttribute('aria-pressed',k===topic);
     b.innerHTML=`<span aria-hidden="true">${t.icon}</span>${t.name}`;
     b.onclick=()=>{topic=k;renderTopics();renderMode();if(mode==='learn')speak(t.en)};nav.appendChild(b);
   }
+  nav.scrollLeft=sl;
 }
 
 /* --- nauka --- */
@@ -814,6 +830,6 @@ renderTopics();renderLearn();
 </script>
 
 <a href="index.html" class="home-btn" aria-label="Wróć do wszystkich gier">🏠</a>
-<style>.home-btn{position:fixed;z-index:99;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}</style>
+<style>.home-btn{position:fixed;z-index:99;left:calc(12px + env(safe-area-inset-left,0px));bottom:calc(118px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}</style>
 </body>
 </html>
