@@ -1,4 +1,4 @@
-Gry i zabawy Livki i Viki — jak wrzucić na Vercel
+Gry i zabawy Liwki i Viki — jak wrzucić na Vercel
 
 W folderze:
   index.html      strona startowa z kafelkami

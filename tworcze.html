@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#eaf6ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Gry Livki i Viki">
+<meta name="apple-mobile-web-app-title" content="Gry Liwki i Viki">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -172,15 +172,24 @@ function pop(){const c=ac();if(!c)return;const t=c.currentTime,o=c.createOscilla
   g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.14)}
 /* --- lektor --- */
 const synth=window.speechSynthesis;let vEN=null,vPL=null,tok=0;
-function pv(){if(!synth)return;const v=synth.getVoices();vEN=v.find(x=>/en-GB/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null;
-  vPL=v.find(x=>/^pl/i.test(x.lang)&&/Zosia|Paulina|Ewa|female/i.test(x.name))||v.find(x=>/^pl/i.test(x.lang))||null}
+/* wybór najładniejszego głosu: najpierw naturalne (neuronowe) i dziecięce, potem Google/Apple, na końcu dowolny */
+function bestVoice(lang){if(!window.speechSynthesis)return null;const all=speechSynthesis.getVoices().filter(v=>new RegExp('^'+lang,'i').test(v.lang));
+  const sc=v=>{const n=v.name;let s=0;
+    if(/Natural|Neural|Online/i.test(n))s+=50;if(/Premium|Enhanced|Siri/i.test(n))s+=40;if(/Google/i.test(n))s+=25;
+    if(lang==='en'){if(/\bAna\b|Maisie/i.test(n))s+=35;if(/Sonia|Libby|Jenny|Aria|Emma|Samantha|Karen|Serena|Kate|Martha|Moira|Tessa|Ava|Allison/i.test(n))s+=12;
+      if(/en-GB/i.test(v.lang))s+=4;else if(/en-US/i.test(v.lang))s+=3;}
+    else{if(/Zofia|Zosia|Paulina|Agnieszka|Ewa|Maja|Ola/i.test(n))s+=12;}
+    if(/female|kobieta/i.test(n))s+=5;if(v.localService===false)s+=3;return s};
+  return all.sort((a,b)=>sc(b)-sc(a))[0]||null}
+const childVoice=v=>!!v&&/\bAna\b|Maisie/i.test(v.name);
+function pv(){vEN=bestVoice('en');vPL=bestVoice('pl')}
 if(synth){pv();synth.onvoiceschanged=pv}
 function say(parts,done){
   if(typeof parts==='string')parts=[[parts,'pl']];
   const t=++tok;let f=false;const fin=()=>{if(!f&&t===tok){f=true;done&&done()}};
   if(!synth){if(done)setTimeout(fin,1200);return}
   try{synth.cancel();parts.forEach(([x,l],i)=>{const u=new SpeechSynthesisUtterance(x),v=l==='en'?vEN:vPL;u.lang=v?v.lang:(l==='en'?'en-GB':'pl-PL');if(v)u.voice=v;
-      u.rate=l==='en'?.85:1;u.pitch=1.15;if(i===parts.length-1){u.onend=()=>setTimeout(fin,200);u.onerror=fin}synth.speak(u)});
+      u.rate=l==='en'?.92:1;u.pitch=childVoice(v)?1:(l==='en'?1.12:1.08);if(i===parts.length-1){u.onend=()=>setTimeout(fin,200);u.onerror=fin}synth.speak(u)});
     if(done)setTimeout(fin,1100+parts.reduce((n,[x])=>n+x.length*95,0))}catch(e){if(done)setTimeout(fin,1200)}}
 function hush(){tok++;if(synth)try{synth.cancel()}catch(e){}}
 function confetti(){const c=$('conf');c.innerHTML='';for(let i=0;i<40;i++){const e=document.createElement('i');e.textContent=pick(['🎉','⭐','💖','🌈','✨','🎈']);

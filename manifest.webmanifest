@@ -1,6 +1,6 @@
 {
-  "name": "Gry i zabawy Livki i Viki",
-  "short_name": "Gry Livki i Viki",
+  "name": "Gry i zabawy Liwki i Viki",
+  "short_name": "Gry Liwki i Viki",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#eaf6ff",
